@@ -6,3 +6,4 @@ urlquick.py
 .debug
 __pycache__/
 test.py
+_zip/
