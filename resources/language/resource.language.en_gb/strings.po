@@ -1,0 +1,46 @@
+# Kodi Media Center language file
+# Addon Name: NHL66
+# Addon id: plugin.video.nhl66
+# Addon Provider: tekbec
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.video.nhl66\n"
+"Report-Msgid-Bugs-To: https://github.com/tekbec/plugin.video.nhl66\n"
+"POT-Creation-Date: 2023-10-08 20:20-0400\n"
+"PO-Revision-Date: 2023-10-08 20:20-0400\n"
+"Last-Translator: tekbec\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "Live Events"
+msgstr ""
+
+
+msgctxt "#30001"
+msgid "Live"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Pre Game"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Final"
+msgstr ""
+
+msgctxt "#33001"
+msgid "Proxies"
+msgstr ""
+
+msgctxt "#33002"
+msgid "ESPN"
+msgstr ""
+
+msgctxt "#33003"
+msgid "NHL.TV"
+msgstr ""

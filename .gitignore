@@ -1,0 +1,8 @@
+*.zip
+plugin.video.nhl66/
+venv/
+codequick/
+urlquick.py
+.debug
+__pycache__/
+test.py

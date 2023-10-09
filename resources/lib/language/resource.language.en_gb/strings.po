@@ -1,0 +1,11 @@
+msgctxt "#32001"
+msgid "Proxies"
+msgstr ""
+
+msgctxt "#32001"
+msgid "ESPN Proxy (must be a US ip)"
+msgstr ""
+
+msgctxt "#32002"
+msgid "NHL.TV Proxy"
+msgstr ""

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<addon id="plugin.video.nhl66" name="NHL66" version="0.0.1" provider-name="tekbec">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.codequick" version="1.0.3"/>
+    <import addon="script.module.requests" version="2.31.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+   <extension point="xbmc.service" library="service.py"/>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary>NHL Streams</summary>
+    <description>Watch Free NHL Streams. This service delivers offers live streams and replays.</description>
+    <assets>
+        <icon>resources/media/icon.png</icon>
+        <fanart>resources/media/fanart.jpg</fanart>
+    </assets>
+    <website>https://nhl66.ir/</website>
+    <source>https://github.com/tekbec/plugin.video.nhl66</source>
+  </extension>
+</addon>
