@@ -13,7 +13,7 @@
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <summary>NHL Streams</summary>
-    <description>Watch Free NHL Streams. This service delivers offers live streams and replays.</description>
+    <description>Watch Free NHL Streams. This service offers live streams and replays.</description>
     <assets>
         <icon>resources/media/icon.png</icon>
         <fanart>resources/media/fanart.jpg</fanart>
