@@ -2,15 +2,13 @@
 from __future__ import unicode_literals
 
 # noinspection PyUnresolvedReferences
-from codequick import Route, Resolver, Listitem, run
-from codequick.utils import urljoin_partial, bold
-import urlquick
-import xbmcgui
-import requests
+from codequick import Route, Resolver, Script, Listitem, run
+from codequick.utils import bold, color, italic
 import json
-import base64
 from datetime import datetime
 from .common.url import encode_proxy_url
+from .common.requests import get
+from .platforms.espn.schedule import get_game
 
 # API Constants
 NHL66_API_BASE_URL = 'https://api.nhl66.ir'
@@ -21,6 +19,7 @@ LIVE_EVENTS_LABEL = 30000
 LIVE_LABEL = 30001
 PREGAME_LABEL = 30002
 FINAL_LABEL = 30003
+REPLAY_LABEL = 30004
 
 
 
@@ -31,34 +30,57 @@ def root(plugin: Route):
     """
     :param Route plugin: The plugin parent object.
     """
+    live_events_label = color(bold(plugin.localize(LIVE_EVENTS_LABEL)), 'crimson')
+    live_events_item = Listitem.from_dict(get_games, live_events_label, params={'types': ['live', 'pregame']})
+    live_events_item.info.title = live_events_label
+    yield live_events_item
+    replay_label = color(bold(plugin.localize(REPLAY_LABEL)), 'gold')
+    replay_item = Listitem.from_dict(get_games, replay_label, params={'types': ['final']})
+    replay_item.info.title = replay_label
+    yield replay_item
 
-    yield Listitem.from_dict(live_events, plugin.localize(LIVE_EVENTS_LABEL))
 
-
-@Route.register
-def live_events(plugin: Route):
-    response = requests.get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH)
+@Route.register()
+def get_games(plugin: Route, types: list):
+    # Make the request
+    plugin.log('Getting NHL66 schedule...', lvl = Script.DEBUG)
+    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
     response.raise_for_status()
+
+    # Parse the response
     state = json.loads(response.text)
     games = state['games']
+    plugin.log(f'Found {str(len(games))} games.', lvl = Script.DEBUG)
+
+    # Parse each game
     live_events = []
     pregame_events = []
     final_events = []
+    plugin.log(f'Parsing games...', lvl = Script.DEBUG)
     for game in games:
         try:
             start_datetime = datetime.fromisoformat(game['start_datetime'].replace('Z','+00:00'))
+            image = None
+
+            # Search ESPN game for extra metadata
+            espn_game = get_game(start_datetime, game['home_short'], game['away_short'])
+            if espn_game:
+                image = espn_game.get('image', {}).get('url', None)
             
             # Build the label
-            label = '{} @ {} - {}'.format(game['away_name'], game['home_name'], start_datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))
+            label = f'{game["away_name"]} @ {game["home_name"]} - {italic(start_datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))}'
             if game['status'] == 'P':
-                label = plugin.localize(PREGAME_LABEL) + ' - ' + label
+                label = f'{color(bold(plugin.localize(PREGAME_LABEL)), "limegreen")} - {label}'
             elif game['status'] == 'I':
-                label = plugin.localize(LIVE_LABEL) + ' - ' + label
+                label = f'{color(bold(plugin.localize(LIVE_LABEL)), "crimson")} - {label}'
             elif game['status'] == 'F':
-                label = plugin.localize(FINAL_LABEL) + ' - ' + label
+                label = f'{color(bold(plugin.localize(FINAL_LABEL)), "gold")} - {label}'
 
             # Create the list item
             listitem = Listitem.from_dict(game_links, label, params={'game_id': game['id']})
+            listitem.info.title = label
+            if image:
+                listitem.art.poster = image
 
             # Add it in the right category
             if game['status'] == 'P':
@@ -67,15 +89,25 @@ def live_events(plugin: Route):
                 live_events.append(listitem)
             elif game['status'] == 'F':
                 final_events.append(listitem)
-        except:
-            pass
-    return [*live_events, *pregame_events, *final_events]
+        except Exception as e:
+            Script.log(str(e), lvl=Script.ERROR)
+
+    events = []
+    for type in types:
+        if type == 'live':
+            events.extend(live_events)
+        elif type == 'pregame':
+            events.extend(pregame_events)
+        elif type == 'final':
+            events.extend(final_events)
+
+    return events
 
 
 
 @Route.register
 def game_links(plugin, game_id):
-    response = requests.get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH)
+    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
     response.raise_for_status()
     state = json.loads(response.text)
     links = state['links']
@@ -104,7 +136,7 @@ def game_links(plugin, game_id):
 
 @Resolver.register
 def play_link(plugin: Resolver, link_id):
-    response = requests.get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH)
+    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
     response.raise_for_status()
     state = json.loads(response.text)
     links = state['links']
@@ -114,5 +146,5 @@ def play_link(plugin: Resolver, link_id):
                 encoded_url = encode_proxy_url(link['url'])
                 return plugin.extract_source(encoded_url, 3)
         except Exception as e:
-            print (e)
+            Script.log(str(e), lvl=Script.ERROR)
     return []

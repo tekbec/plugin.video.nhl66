@@ -33,6 +33,14 @@ msgctxt "#30003"
 msgid "Final"
 msgstr ""
 
+msgctxt "#30004"
+msgid "Game Replays"
+msgstr ""
+
+msgctxt "#33000"
+msgid "General"
+msgstr ""
+
 msgctxt "#33001"
 msgid "Proxies"
 msgstr ""
@@ -43,4 +51,16 @@ msgstr ""
 
 msgctxt "#33003"
 msgid "NHL.TV"
+msgstr ""
+
+msgctxt "#33004"
+msgid "NHL66"
+msgstr ""
+
+msgctxt "#33005"
+msgid "Requests"
+msgstr ""
+
+msgctxt "#33006"
+msgid "User Agent"
 msgstr ""
