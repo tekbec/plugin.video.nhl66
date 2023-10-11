@@ -47,7 +47,7 @@ class RequestsHandler(BaseHTTPRequestHandler):
                 resp = get(decoded_url, provider)
             # On request error (most-likely proxy error), send a 500 response
             except Exception as e:
-                Script.log(f'Request error. Responding with a 500 INTERNAL SERVER ERROR.', lvl=Script.DEBUG)
+                Script.log(f'Request error. Responding with a 500 (INTERNAL SERVER ERROR).', lvl=Script.ERROR)
                 Script.log(str(e), lvl=Script.DEBUG)
                 self.send_response(500)
                 self.send_header('Content-Type', 'text/plain')
@@ -56,13 +56,13 @@ class RequestsHandler(BaseHTTPRequestHandler):
                     self.wfile.write(b'Internal Server Error')
                 Script.log(f'Response code: 500.', lvl=Script.DEBUG)
                 return
+            # Limit the cache size
+            if len(CACHE) >= CACHE_SIZE:
+                CACHE.pop(next(iter(CACHE)))
             # Cache the response if it's a media format
             if decoded_url.endswith('.ts'):
                 CACHE[decoded_url] = resp
-            # Limit the cache size
-            if len(CACHE) > CACHE_SIZE:
-                CACHE.pop(next(iter(CACHE)))
-            Script.log(f'[{method}] Cache size: {str(len(CACHE))}.', lvl=Script.DEBUG)
+            Script.log(f'Cache size: {str(len(CACHE))}.', lvl=Script.DEBUG)
 
         # These are for response that can be returned as-is
         if resp.status_code < 200 or resp.status_code > 299 or decoded_url.endswith('.ts') or 'nhl66' in decoded_url:
