@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from .common.url import encode_proxy_url
 from .common.requests import get
-from .platforms.espn.schedule import get_game
+from .platforms.thesportsdb.schedule import get_game
 
 # API Constants
 NHL66_API_BASE_URL = 'https://api.nhl66.ir'
@@ -62,10 +62,10 @@ def get_games(plugin: Route, types: list):
             start_datetime = datetime.fromisoformat(game['start_datetime'].replace('Z','+00:00'))
             image = None
 
-            # Search ESPN game for extra metadata
-            espn_game = get_game(start_datetime, game['home_short'], game['away_short'])
-            if espn_game:
-                image = espn_game.get('image', {}).get('url', None)
+            # Search TheSportsDB thumbnail
+            thesportsdb_event = get_game(start_datetime, game['home_abr'], game['away_abr'])
+            if thesportsdb_event:
+                image = thesportsdb_event['strThumb']
             
             # Build the label
             label = f'{game["away_name"]} @ {game["home_name"]} - {italic(start_datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))}'

@@ -1,5 +1,6 @@
 TEAMS = {
     'ana': {
+        'thesportsdb_id': '134846',
         'country': 'US',
         'city': 'Anaheim',
         'short_name': 'Ducks',
@@ -9,6 +10,7 @@ TEAMS = {
 
     },
     'ari': {
+        'thesportsdb_id': '134847',
         'country': 'US',
         'city': 'Arizona',
         'short_name': 'Coyotes',
@@ -17,6 +19,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/ARI_dark.svg',
     },
     'bos': {
+        'thesportsdb_id': '134830',
         'country': 'US',
         'city': 'Boston',
         'short_name': 'Bruins',
@@ -25,6 +28,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/BOS_dark.svg',
     },
     'buf': {
+        'thesportsdb_id': '134831',
         'country': 'US',
         'city': 'Buffalo',
         'short_name': 'Sabres',
@@ -33,6 +37,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/BUF_dark.svg',
     },
     'car': {
+        'thesportsdb_id': '134838',
         'country': 'US',
         'city': 'Carolina',
         'short_name': 'Hurricanes',
@@ -41,6 +46,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/CAR_dark.svg',
     },
     'cbj': {
+        'thesportsdb_id': '134839',
         'country': 'US',
         'city': 'Columbus',
         'short_name': 'Blue Jackets',
@@ -49,6 +55,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/CBJ_dark.svg',
     },
     'cgy': {
+        'thesportsdb_id': '134848',
         'country': 'CA',
         'city': 'Calgary',
         'short_name': 'Flames',
@@ -57,6 +64,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/CGY_dark.svg',
     },
     'chi': {
+        'thesportsdb_id': '134854',
         'country': 'US',
         'city': 'Chicago',
         'short_name': 'Blackhawks',
@@ -65,6 +73,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg',
     },
     'col': {
+        'thesportsdb_id': '134855',
         'country': 'US',
         'city': 'Colorado',
         'short_name': 'Avalanche',
@@ -73,6 +82,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/COL_dark.svg',
     },
     'dal': {
+        'thesportsdb_id': '134856',
         'country': 'US',
         'city': 'Dallas',
         'short_name': 'Stars',
@@ -81,6 +91,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/DAL_dark.svg',
     },
     'det': {
+        'thesportsdb_id': '134832',
         'country': 'US',
         'city': 'Detroit',
         'short_name': 'Red Wings',
@@ -89,6 +100,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/DET_dark.svg',
     },
     'edm': {
+        'thesportsdb_id': '134849',
         'country': 'CA',
         'city': 'Edmonton',
         'short_name': 'Oilers',
@@ -97,6 +109,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/EDM_dark.svg',
     },
     'fla': {
+        'thesportsdb_id': '134833',
         'country': 'US',
         'city': 'Florida',
         'short_name': 'Panthers',
@@ -105,6 +118,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/FLA_dark.svg',
     },
     'lak': {
+        'thesportsdb_id': '134852',
         'country': 'US',
         'city': 'Los Angeles',
         'short_name': 'Kings',
@@ -113,6 +127,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/LAK_dark.svg',
     },
     'min': {
+        'thesportsdb_id': '134857',
         'country': 'US',
         'city': 'Minnesota',
         'short_name': 'Wild',
@@ -121,6 +136,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/MIN_dark.svg',
     },
     'mtl': {
+        'thesportsdb_id': '134834',
         'country': 'CA',
         'city': 'Montreal',
         'short_name': 'Canadiens',
@@ -129,6 +145,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/MTL_dark.svg',
     },
     'njd': {
+        'thesportsdb_id': '134840',
         'country': 'US',
         'city': 'New Jersey',
         'short_name': 'Devils',
@@ -137,6 +154,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/NJD_dark.svg',
     },
     'nsh': {
+        'thesportsdb_id': '134858',
         'country': 'US',
         'city': 'Nashville',
         'short_name': 'Predators',
@@ -145,6 +163,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/NSH_dark.svg',
     },
     'nyi': {
+        'thesportsdb_id': '134841',
         'country': 'US',
         'city': 'New York',
         'short_name': 'Islanders',
@@ -153,6 +172,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/NYI_dark.svg',
     },
     'nyr': {
+        'thesportsdb_id': '134842',
         'country': 'US',
         'city': 'New York',
         'short_name': 'Rangers',
@@ -161,6 +181,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/NYR_dark.svg',
     },
     'ott': {
+        'thesportsdb_id': '134835',
         'country': 'CA',
         'city': 'Ottawa',
         'short_name': 'Senators',
@@ -169,6 +190,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/OTT_dark.svg',
     },
     'phi': {
+        'thesportsdb_id': '134843',
         'country': 'US',
         'city': 'Philadelphia',
         'short_name': 'Flyers',
@@ -177,6 +199,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg',
     },
     'pit': {
+        'thesportsdb_id': '134844',
         'country': 'US',
         'city': 'Pittsburgh',
         'short_name': 'Penguins',
@@ -185,6 +208,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/PIT_dark.svg',
     },
     'sea': {
+        'thesportsdb_id': '140082',
         'country': 'US',
         'city': 'Seattle',
         'short_name': 'Kraken',
@@ -193,6 +217,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/SEA_dark.svg',
     },
     'sjs': {
+        'thesportsdb_id': '134853',
         'country': 'US',
         'city': 'San Jose',
         'short_name': 'Sharks',
@@ -201,6 +226,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/SJS_dark.svg',
     },
     'stl': {
+        'thesportsdb_id': '134859',
         'country': 'US',
         'city': 'St. Louis',
         'short_name': 'Blues',
@@ -209,6 +235,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/STL_dark.svg',
     },
     'tbl': {
+        'thesportsdb_id': '134836',
         'country': 'US',
         'city': 'Tampa Bay',
         'short_name': 'Lightning',
@@ -217,6 +244,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg',
     },
     'tor': {
+        'thesportsdb_id': '134837',
         'country': 'CA',
         'city': 'Toronto',
         'short_name': 'Maple Leafs',
@@ -225,6 +253,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/TOR_dark.svg',
     },
     'van': {
+        'thesportsdb_id': '134850',
         'country': 'CA',
         'city': 'Vancouver',
         'short_name': 'Canucks',
@@ -233,6 +262,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/VAN_dark.svg',
     },
     'vgk': {
+        'thesportsdb_id': '135913',
         'country': 'US',
         'city': 'Vegas',
         'short_name': 'Golden Knights',
@@ -241,6 +271,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/VGK_dark.svg',
     },
     'wpg': {
+        'thesportsdb_id': '134851',
         'country': 'CA',
         'city': 'Winnipeg',
         'short_name': 'Jets',
@@ -249,6 +280,7 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/WPG_dark.svg',
     },
     'wsh': {
+        'thesportsdb_id': '134845',
         'country': 'US',
         'city': 'Washington',
         'short_name': 'Capitals',
@@ -257,3 +289,28 @@ TEAMS = {
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/WSH_dark.svg',
     },
 }
+
+
+def get_team(abbr: str):
+    return TEAMS.get(abbr.lower())
+
+
+def get_thesportsdb_id(abbr: str):
+    team = get_team(abbr)
+    if team is None:
+        return None
+    return team.get('thesportsdb_id')
+
+
+def get_short_name(abbr: str):
+    team = get_team(abbr)
+    if team is None:
+        return None
+    return team.get('short_name')
+
+
+def get_long_name(abbr: str):
+    team = get_team(abbr)
+    if team is None:
+        return None
+    return team.get('long_name')
