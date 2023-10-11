@@ -2,6 +2,8 @@ from codequick.script import Settings, Script
 from copy import copy
 import requests
 
+SESSIONS = {}
+
 def get_proxies(provider: str):
     if provider == None:
         return None
@@ -37,7 +39,13 @@ def overlap_headers(headers, priority_headers):
     
     return new_headers
 
+def get_session(provider: str = None) -> requests.Session:
+    if not (str(provider)) in SESSIONS:
+        SESSIONS[str(provider)] = requests.Session()
+    return SESSIONS[str(provider)]
+
 def get(url: str, provider: str = None, headers: dict = None):
+    session = get_session(provider)
     new_headers = get_headers(headers)
     proxies = get_proxies(provider)
 
@@ -47,4 +55,17 @@ def get(url: str, provider: str = None, headers: dict = None):
         Script.log(f'Making request with the following proxy: {proxies.get("https", "")}', lvl=Script.DEBUG)
     else:
         Script.log('Making request with no proxy.', lvl=Script.DEBUG)
-    return requests.get(url, headers=new_headers, proxies=proxies)
+    return session.get(url, headers=new_headers, proxies=proxies)
+
+def head(url: str, provider: str = None, headers: dict = None):
+    session = get_session(provider)
+    new_headers = get_headers(headers)
+    proxies = get_proxies(provider)
+
+    Script.log(f'Making request to the following url: {url}', lvl=Script.DEBUG)
+    Script.log(f'Making request with the following user agent: {new_headers.get("User-Agent", "")}', lvl=Script.DEBUG)
+    if proxies:
+        Script.log(f'Making request with the following proxy: {proxies.get("https", "")}', lvl=Script.DEBUG)
+    else:
+        Script.log('Making request with no proxy.', lvl=Script.DEBUG)
+    return session.head(url, headers=new_headers, proxies=proxies)
