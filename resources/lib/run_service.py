@@ -30,7 +30,10 @@ class RequestsHandler(BaseHTTPRequestHandler):
 
         # Print the request
         provider = None
-        if 'espn' in decoded_url:
+        if 'nhl66' in decoded_url:
+            Script.log(f'[NHL66] [{method}] {decoded_url}', lvl=Script.DEBUG)
+            provider = 'nhl66'
+        elif 'espn' in decoded_url:
             Script.log(f'[ESPN] [{method}] {decoded_url}', lvl=Script.DEBUG)
             provider = 'espn'
         else:
