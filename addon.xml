@@ -5,6 +5,7 @@
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.codequick" version="1.0.3"/>
     <import addon="script.module.requests" version="2.31.0"/>
+    <import addon="script.module.pysocks" version="1.7.0+matrix.1"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>

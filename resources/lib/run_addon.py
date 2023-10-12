@@ -30,7 +30,7 @@ def root(plugin: Route):
     """
     :param Route plugin: The plugin parent object.
     """
-    live_events_label = color(bold(plugin.localize(LIVE_EVENTS_LABEL)), 'crimson')
+    live_events_label = color(bold(plugin.localize(LIVE_EVENTS_LABEL)), 'limegreen')
     live_events_item = Listitem.from_dict(get_games, live_events_label, params={'types': ['live', 'pregame']})
     live_events_item.info.title = live_events_label
     yield live_events_item
@@ -70,9 +70,9 @@ def get_games(plugin: Route, types: list):
             # Build the label
             label = f'{game["away_name"]} @ {game["home_name"]} - {italic(start_datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))}'
             if game['status'] == 'P':
-                label = f'{color(bold(plugin.localize(PREGAME_LABEL)), "limegreen")} - {label}'
+                label = f'{color(bold(plugin.localize(PREGAME_LABEL)), "deeppink")} - {label}'
             elif game['status'] == 'I':
-                label = f'{color(bold(plugin.localize(LIVE_LABEL)), "crimson")} - {label}'
+                label = f'{color(bold(plugin.localize(LIVE_LABEL)), "limegreen")} - {label}'
             elif game['status'] == 'F':
                 label = f'{color(bold(plugin.localize(FINAL_LABEL)), "gold")} - {label}'
 
@@ -107,9 +107,10 @@ def get_games(plugin: Route, types: list):
 
 @Route.register
 def game_links(plugin, game_id):
-    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
+    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66', skip_cache=True)
     response.raise_for_status()
     state = json.loads(response.text)
+    listitems = []
     links = state['links']
     for link in links:
         try:
@@ -118,19 +119,39 @@ def game_links(plugin, game_id):
                 stream = content_id[3]
                 label = '{} - {}'.format(link['provider'], stream)
                 if link['status'] == 'L':
-                    label = 'Live - ' + label
-                listitem = Listitem()
-                listitem.set_path(encode_proxy_url(link['url']))
-                listitem.label = label
-                listitem.listitem.setContentLookup(False)
-                listitem.listitem.setMimeType('application/x-mpegURL')
-                listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
-                listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
-                yield listitem
-        except:
+                    label = f'{bold(color("Live", "limegreen"))} - {label}'
+                elif link['status'] == 'R':
+                    label = f'{bold(color("Replay", "gold"))} - {label}'
+                elif link['status'] == 'E':
+                    label = f'{bold(color("Bugged", "crimson"))} - {label}'
+                elif link['status'] == 'P':
+                    label = f'{bold(color("Planned", "deeppink"))} - {label}'
+                # Set the provider
+                provider = None
+                if 'espn' in link['provider'].lower():
+                    provider = 'espn'
+                elif 'nhl' in link['provider'].lower():
+                    provider = 'nhltv'
+                if link['url']:
+                    listitem = Listitem()
+                    listitem.set_path(encode_proxy_url(link['url'], provider=provider))
+                    listitem.label = label
+                    listitem.info.title = label
+                    listitem.listitem.setContentLookup(False)
+                    listitem.listitem.setMimeType('application/x-mpegURL')
+                    listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
+                    listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                    listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
+                    listitems.append(listitem)
+                else:
+                    listitem = Listitem.from_dict(play_link, label, params={'link_id': link['id']})
+                    listitem.label = label
+                    listitem.info.title = label
+                    listitems.append(listitem)
+        except Exception as e:
+            Script.log(e, lvl=Script.WARNING)
             pass
-    return []
+    return listitems
 
 
 
@@ -143,7 +164,12 @@ def play_link(plugin: Resolver, link_id):
     for link in links:
         try:
             if link['id'] == link_id:
-                encoded_url = encode_proxy_url(link['url'])
+                provider = None
+                if 'espn' in link['provider'].lower():
+                    provider = 'espn'
+                elif 'nhl' in link['provider'].lower():
+                    provider = 'nhltv'
+                encoded_url = encode_proxy_url(link['url'], provider=provider)
                 return plugin.extract_source(encoded_url, 3)
         except Exception as e:
             Script.log(str(e), lvl=Script.ERROR)
