@@ -3,27 +3,29 @@ from .common.url import encode_proxy_url, decode_proxy_url, urljoin
 from codequick.script import Script, Settings
 from copy import copy
 from datetime import datetime, timedelta
-import requests, re, urllib.parse
+from requests.structures import CaseInsensitiveDict
+import requests, re, urllib.parse, traceback
 
-
+# For how many seconds cached responses should be valid
 CACHE_VALIDITY_DURATION = {
     'nhltv': -1,
     'espn': -1,
     'nhl66': 60
 }
-PASSTHROUGH_HEADERS = [
-    'Age',
-    'Cache-Control',
-    'Content-Encoding',
-    'Content-Length',
+
+# Headers that should be kept intact
+PASSTHROUGH_HEADERS = [x.lower() for x in [
     'Content-Type',
-    'Date',
-    'Etag',
-    'Expires',
-    'Last-Modified',
-    'Vary',
-    'Via',
-]
+]]
+
+# Headers that will be added to the response depending on provider
+CUSTOM_RESPONSE_HEADERS = {
+    '*': {},
+    'nhl66': {},
+    'espn': {},
+    'nhltv': {},
+}
+
 CACHE = {}
 CACHE_SIZE = 20
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
@@ -34,141 +36,214 @@ class RequestsHandler(BaseHTTPRequestHandler):
     SESSIONS = {}
 
     def log(self, msg, lvl=Script.DEBUG):
+        '''
+        Creates an entry in Kodi's log
+        '''
+
         Script.log(f'[PROXY] {msg}', lvl=lvl)
 
-    def do_GET(self, method='GET', send_body=True):
+    # -------------------------------------------------------- #
+    #
+    # HANDLERS
+    #
+    # -------------------------------------------------------- #
+
+    def do_GET(self, method='GET'):
+        '''
+        Handles incoming GET requests
+        '''
+
         try:
-            # Decode the url
+            # -------------------------------------------------------- #
+            # Get informations about the request to make
+            # -------------------------------------------------------- #
             request_info = decode_proxy_url(self.path)
-            decoded_url = request_info['url']
-            provider = request_info['provider']
-            ext = request_info['ext']
-            skip_cache = request_info['skip_cache']
-            headers = request_info['headers']
+            self.skip_cache = request_info['skip_cache']
+            self.headers = CaseInsensitiveDict(request_info['headers'])
+            self.url = request_info['url']
+            self.extension = request_info['ext']
+            self.filename = urllib.parse.urlparse(self.url).path.split('/')[-1]
+            self.method = method
+            self.provider = request_info['provider']
 
-            # Log the request
-            self.log(f'[{method}] [{provider}] [{str(ext)}] {decoded_url}')
 
+            # -------------------------------------------------------- #
             # Make the request
+            # -------------------------------------------------------- #
             try:
-                resp = self._make_request(decoded_url, provider, headers, skip_cache=skip_cache)
+                resp = self._get_response()
             except Exception as e:
-                self.log('Request error. Responding with a 500 (INTERNAL SERVER ERROR).', Script.ERROR)
-                self.log(str(e), Script.ERROR)
-                self.send_response(500)
-                self.send_header('Content-Type', 'text/plain')
-                self.end_headers()
-                if send_body:
-                    self.wfile.write(b'Internal Server Error')
-                self.log('Response code: 500.', Script.ERROR)
-                return
+                self.log('Unable to make request.', Script.ERROR)
+                traceback.print_exc()
+                return self._send(500, {'Content-Type': 'text/plain'}, b'Internal Server Error')
 
-            # These are for response that can be returned as-is
-            if resp.status_code < 200 or resp.status_code > 299 or ext == 'ts' or provider == 'nhl66':
-                self.send_response(resp.status_code)
-                for key, val in resp.headers.items():
-                    if PASSTHROUGH_HEADERS is None or key.lower() in PASSTHROUGH_HEADERS:
-                        self.send_header(key, val)
-                self.end_headers()
-                if send_body:
-                    self.wfile.write(resp.content)
-                self.log(f'Response code: {resp.status_code}.')
-                return
 
-            
+            # -------------------------------------------------------- #
+            # Requests that need no changes
+            # -------------------------------------------------------- #
+            if self.provider == 'nhl66' or \
+                resp.status_code < 200 or resp.status_code > 299 or \
+                self.extension == 'ts':
+                return self._send(resp.status_code, self._filter_headers(resp.headers), resp.content)
             body = resp.text
 
-            # Modify m3u8 body
-            if ext == 'm3u8':
-                self.log('Modifying M3U8 response...')
-                base_url = decoded_url.rsplit('/', 1)[0]
+
+            # -------------------------------------------------------- #
+            # M3U8 requests
+            # -------------------------------------------------------- #
+            if self.extension == 'm3u8':
+                self.log('.m3u8 file detected, modifiying hrefs...')
+                base_url = self.url.rsplit('/', 1)[0]
                 lines = body.split('\n')
                 for i in range(len(lines)):
                     try:
-                        # Try to remove query string, if any
+
+                        # Remove the query string (this allows us to get the extension of the url)
                         url_without_qs = lines[i]
                         try:
                             url_without_qs = lines[i][:lines[i].index('?')]
                         except:
                             pass
-                        # This is meant to redirect manifest and segment requests
+
+                        # Redirect manifests and segments requests
                         if url_without_qs.endswith('.m3u8') or url_without_qs.endswith('.ts'):
-                            url = lines[i]
+                            segment_url = lines[i]
                             if not lines[i].startswith('http'):
-                                url = urljoin(base_url, url)
-                            lines[i] = encode_proxy_url(url, provider=provider)
-                        # This is meant to redirect license requests
+                                segment_url = urljoin(base_url, segment_url)
+                            lines[i] = encode_proxy_url(segment_url, provider=self.provider)
+
+                        # Redirect license requests
                         elif lines[i].strip().upper().startswith('#EXT-X-KEY:METHOD'):
                             old_url = re.findall(r'"(http.*)"', lines[i])[0]
-                            encoded_url = ''
-                            if provider == 'espn':
+                            new_url = ''
+                            # ESPN license requests must be redirected to NHL66
+                            if self.provider == 'espn':
                                 new_url = NHL66_ESPN_CYPER_BASE_URL + urllib.parse.urlparse(old_url).path
-                                encoded_url = encode_proxy_url(new_url, provider='nhl66')
-                            elif provider == 'nhltv':
-                                encoded_url = encode_proxy_url(old_url, provider='nhl66')
-                            lines[i] = lines[i].replace(old_url, encoded_url)
-                    except Exception as e:
-                        self.log(str(e), Script.ERROR)
+                                new_url = encode_proxy_url(new_url, provider='nhl66')
+                            # NHL.TV license requests don't need any additionnal redirect
+                            elif self.provider == 'nhltv':
+                                new_url = encode_proxy_url(old_url, provider='nhl66')
+                            lines[i] = lines[i].replace(old_url, new_url)
+                    except:
+                        self.log(f'Unable to parse this line: {lines[i]}', Script.ERROR)
+                        traceback.print_exc()
                 body = '\n'.join(lines)
 
-            self.send_response(resp.status_code)
-            for key, val in resp.headers.items():
-                if PASSTHROUGH_HEADERS is None or key.lower() in PASSTHROUGH_HEADERS:
-                    self.send_header(key, val)
-            self.end_headers()
-            if send_body:
-                self.wfile.write(body.encode())
-            self.log(f'Response code: {resp.status_code}.', lvl=Script.DEBUG)
-        except Exception as e:
-            self.log('Unexpected error. Responding with a 500 (INTERNAL SERVER ERROR).', Script.ERROR)
-            self.log(str(e), Script.ERROR)
-            self.send_response(500)
-            self.send_header('Content-Type', 'text/plain')
-            self.end_headers()
-            if send_body:
-                self.wfile.write(b'Internal Server Error')
-            self.log('Response code: 500.', Script.ERROR)
+            self._send(resp.status_code, self._filter_headers(resp.headers), body.encode())
+        except:
+            self.log('Unhandled exception.', Script.ERROR)
+            traceback.print_exc()
+            self._send(500, {'Content-Type': 'text/plain'}, b'Internal Server Error')
     
+
+
     def do_HEAD(self):
-        self.do_GET(method='HEAD', send_body=False)
+        '''
+        Handles incoming HEAD requests
+        '''
+        self.do_GET(method='HEAD')
 
-    def _get(self, url: str, provider: str = None, headers: dict = None):
-        session = self.get_session(provider)
-        new_headers = get_headers(headers)
-        proxies = get_proxies(provider)
 
-        self.log(f'Making request to the following url: {url}')
-        self.log(f'Making request with the following user agent: {new_headers.get("User-Agent", "")}')
-        if proxies:
-            self.log(f'Making request with the following proxy: {proxies.get("https", "")}')
+
+    # -------------------------------------------------------- #
+    #
+    # REQUESTS
+    #
+    # -------------------------------------------------------- #
+
+
+
+    def _get_response(self):
+        '''
+        Returns the response for the requested data.
+        This will return the cached response if available and valid.
+        '''
+        response = None
+        if not self.skip_cache:
+            response = self._search_cache()
         else:
-            self.log('Making request with no proxy.')
-        return session.get(url, headers=new_headers, proxies=proxies)
+            self.log('Cache skipped.')
+        if response is not None:
+            return response
+        response = self._make_request()
+        self._save_cache(response)
+        return response
     
-    def get_session(self, provider: str = None) -> requests.Session:
+
+
+    def _make_request(self):
+        '''
+        Makes the GET request and returns the response.
+        '''
+
+        session = self._get_provider_session(self.provider)
+        new_headers = self._add_provider_headers(self.headers)
+        proxies = self._get_provider_proxies(self.provider)
+
+        self.log(f'URL.......: {self.url}')
+        self.log(f'User Agent: {new_headers.get("User-Agent", None)}')
+        if proxies:
+            self.log(f'Proxy.....: {proxies.get("https", "")}')
+        else:
+            self.log('Proxy.....: None')
+        return session.get(self.url, headers=new_headers, proxies=proxies)
+    
+
+
+    def _get_provider_session(self, provider: str = None) -> requests.Session:
+        '''
+        Returns the provider session.
+        '''
         if not (str(provider)) in RequestsHandler.SESSIONS:
             RequestsHandler.SESSIONS[str(provider)] = requests.Session()
         return RequestsHandler.SESSIONS[str(provider)]
     
-    def _make_request(self, url: str, provider: str, headers: dict = None, ext: str = None, skip_cache: bool = False):
-        response = None
-        if not skip_cache:
-            response = self._search_cache(url, provider)
-        else:
-            self.log('Skipping cache.')
-        if response is not None:
-            return response
-        response = self._get(url, provider, headers)
-        self._save_cache(url, provider, response, ext)
-        return response
 
-    def _search_cache(self, url: str, provider: str):
+
+    def _add_provider_headers(self, headers: CaseInsensitiveDict = None):
+        '''
+        Returns headers with mandatory provider headers added to it.
+        '''
+        new_headers = CaseInsensitiveDict({})
+        if headers is not None:
+            for key, val in headers.items():
+                new_headers[key] = val
+        new_headers['User-Agent'] = str(Settings.get_string('user_agent'))
+        return new_headers
+    
+
+
+    def _get_provider_proxies(self, provider: str):
+        '''
+        Returns the proxy assigned to the provider.
+        '''
+        if provider == None:
+            return None
+        val = Settings.get_string(f'{provider}_proxy')
+        if not val:
+            return None
+        return {
+            'http': str(val),
+            'https': str(val)
+        }
+
+
+
+    # -------------------------------------------------------- #
+    #
+    # CACHE
+    #
+    # -------------------------------------------------------- #
+
+
+
+    def _search_cache(self):
         # Check if there is an entry in the cache
-        if not url in CACHE.get(provider, {}):
+        if not self.url in CACHE.get(self.provider, {}):
             self.log('Cache miss.')
             return None
         # Check expiry
-        entry = CACHE.get(provider, {})[url]
+        entry = CACHE.get(self.provider, {})[self.url]
         if entry['expiry']:
             if datetime.timestamp(datetime.now()) > entry['expiry']:
                 self.log('Cache entry expired.')
@@ -177,73 +252,105 @@ class RequestsHandler(BaseHTTPRequestHandler):
         self.log('Cache hit.')
         return entry['response']
     
-    def _save_cache(self, url: str, provider: str, response, ext: str = None):
+
+
+    def _save_cache(self, response):
+        
         # Filter
-        if not (provider == 'nhl66' or ext == 'ts'):
-            return
-        # Expiry
-        expiry = None
-        validy_duration = CACHE_VALIDITY_DURATION.get(provider, -1)
-        if validy_duration > 0:
-            expiry = datetime.timestamp(datetime.now() + timedelta(0,validy_duration))
-        # Save in cache
-        if not provider in CACHE:
-            CACHE[provider] = {}
-        CACHE[provider][url] = {
-            'response': response,
-            'expiry': expiry
-        }
-        self.log('Saved to cache.')
-        # Limit cache size
-        if len(CACHE[provider]) > CACHE_SIZE:
-            CACHE[provider].pop(next(iter(CACHE[provider])))
-        self.log(f'Cache size: {str(len(CACHE[provider]))}')
-        
-        
-        
+        if (self.provider == 'nhltv' and (self.filename == 'master-archive.m3u8' or self.filename == 'master.m3u8')) or \
+            (self.provider == 'nhl66'):
 
-
-
-
+            # Expiry
+            expiry = None
+            validy_duration = CACHE_VALIDITY_DURATION.get(self.provider, -1)
+            if validy_duration > 0:
+                expiry = datetime.timestamp(datetime.now() + timedelta(0,validy_duration))
+            # Save in cache
+            if not self.provider in CACHE:
+                CACHE[self.provider] = {}
+            CACHE[self.provider][self.url] = {
+                'response': response,
+                'expiry': expiry
+            }
+            
+            # Limit cache size
+            if len(CACHE[self.provider]) > CACHE_SIZE:
+                CACHE[self.provider].pop(next(iter(CACHE[self.provider])))
+            self.log(f'Saved to cache. New cache size: {str(len(CACHE[self.provider]))}')
         
 
+
+    # -------------------------------------------------------- #
+    #
+    # RESPONSE
+    #
+    # -------------------------------------------------------- #
+
+
+
+    def _send(self, code: int, headers: dict = None, body: bytes = None):
+        '''
+        Sends a response to the client.
+        '''
+
+        # Send response code
+        self.send_response(code)
+
+        # Calculate content length
+        content_length = 0
+        if body is not None:
+            content_length = len(body)
+        
+        # Set headers
+        merged_headers = CaseInsensitiveDict({})
+        if headers is not None:
+            for key, val in headers.items():
+                merged_headers[key] = val
+        if '*' in CUSTOM_RESPONSE_HEADERS:
+            for key, val in CUSTOM_RESPONSE_HEADERS['*'].items():
+                merged_headers[key] = val
+        if self.provider in CUSTOM_RESPONSE_HEADERS:
+            for key, val in CUSTOM_RESPONSE_HEADERS[self.provider].items():
+                merged_headers[key] = val
+        merged_headers['Content-Length'] = str(content_length)
+        for key, val in merged_headers.items():
+            self.send_header(key, val)
+        self.end_headers()
+
+        # Send body, except if method is HEAD
+        if body is not None and self.method != 'HEAD':
+            self.wfile.write(body)
+        
+        # Log the request
+        self.log(f'<{str(self.method)}> <{str(self.provider)}> "../{str(self.filename)}" {str(code)} {str(content_length)}')
+
+        # Log whole request (should be commented)
+        if False:
+            print('Headers:')
+            for key, val in merged_headers.items():
+                print(f'{key}: {val}')
+            print('Body:')
+            print(str(body))
+
+
+    def _filter_headers(self, headers: CaseInsensitiveDict) -> CaseInsensitiveDict:
+        '''
+        Filters provided headers before sending them as response headers.
+        Only headers from PASSTHROUGH_HEADERS will are kept.
+        '''
+
+        filtered_headers = CaseInsensitiveDict({})
+        for key, val in headers.items():
+            if PASSTHROUGH_HEADERS is None or key.lower() in PASSTHROUGH_HEADERS:
+                filtered_headers[key] = val
+        return filtered_headers
+
+
+
+    
 
 def run():
     server_address = ('', 20568)
     httpd = ThreadingHTTPServer(server_address, RequestsHandler)
     httpd.serve_forever()
 
-def get_proxies(provider: str):
-    if provider == None:
-        return None
-    val = Settings.get_string(f'{provider}_proxy')
-    if not val:
-        return None
-    return {
-        'http': str(val),
-        'https': str(val)
-    }
-
-def get_headers(headers: dict = None):
-    return overlap_headers({
-        'User-Agent': str(Settings.get_string('user_agent')),
-    }, headers)
-
-def overlap_headers(headers, priority_headers):
-    if headers is None:
-        return priority_headers
-    elif priority_headers is None:
-        return headers
-    
-    new_headers = copy(headers)
-    for ik, iv in priority_headers.items():
-        f = False
-        for jk, jv in new_headers.items():
-            if ik.lower() == jk.lower():
-                new_headers[jk] = iv
-                f = True
-                break
-        if not f:
-            new_headers[ik] = iv
-    
-    return new_headers
