@@ -9,10 +9,19 @@ from datetime import datetime
 from .common.url import encode_proxy_url
 from .common.requests import get
 from .platforms.thesportsdb.schedule import get_game
+from .platforms.thesportsdb.tvevents import get_tv_events
+import traceback
 
 # API Constants
 NHL66_API_BASE_URL = 'https://api.nhl66.ir'
 NHL66_SCHEDULE_PATH = '/api/sport/stateshot'
+
+# Thumbnails
+NHLTV_THUMB     = 'https://i.imgur.com/HGsNesm.png'
+ESPN_THUMB      = 'https://i.imgur.com/09KBp1W.png'
+TVASPORTS_THUMB = 'https://i.imgur.com/lonf7w3.png'
+RDS_THUMB       = 'https://i.imgur.com/qhrFsYh.png'
+SPORTSNET_THUMB = 'https://i.imgur.com/qB7bKBT.png'
 
 # Labels Constants
 LIVE_EVENTS_LABEL = 30000
@@ -112,6 +121,36 @@ def game_links(plugin, game_id):
     state = json.loads(response.text)
     listitems = []
     links = state['links']
+    games = state['games']
+
+    # Find the game
+    game = None
+    for game_i in games:
+        try:
+            if game_id == game_i['id']:
+                game = game_i
+                break
+        except:
+            pass
+
+    # Search for a TheSportsDB event
+    tsdb_event = None
+    if game:
+        try:
+            start_datetime = datetime.fromisoformat(game['start_datetime'].replace('Z','+00:00'))
+            tsdb_event = get_game(start_datetime, game['home_abr'], game['away_abr'])
+        except:
+            pass
+    
+    # Search for TheSportsDV TV Events
+    tv_events = None
+    if tsdb_event:
+        try:
+            tv_events = get_tv_events(tsdb_event)
+        except:
+            pass
+    
+    # List links
     for link in links:
         try:
             content_id = link['content_id'].split('|')
@@ -132,6 +171,8 @@ def game_links(plugin, game_id):
                     provider = 'espn'
                 elif 'nhl' in link['provider'].lower():
                     provider = 'nhltv'
+                # Create the listitem
+                listitem = None
                 if link['url']:
                     listitem = Listitem()
                     listitem.set_path(encode_proxy_url(link['url'], provider=provider))
@@ -142,12 +183,32 @@ def game_links(plugin, game_id):
                     listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
                     listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
                     listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
-                    listitems.append(listitem)
                 else:
                     listitem = Listitem.from_dict(play_link, label, params={'link_id': link['id']})
                     listitem.label = label
                     listitem.info.title = label
-                    listitems.append(listitem)
+                # Set default thumbnails
+                if provider == 'nhltv':
+                    listitem.art.poster = NHLTV_THUMB
+                elif provider == 'espn':
+                    listitem.art.poster = ESPN_THUMB
+                # Set custom thumbnails
+                if tv_events:
+                    for tv_event in tv_events:
+                        try:
+                            if stream.lower() == 'french':
+                                if 'rds' in tv_event['strChannel'].lower():
+                                    listitem.art.poster = RDS_THUMB
+                                elif 'tva sports' in tv_event['strChannel'].lower():
+                                    listitem.art.poster = TVASPORTS_THUMB
+                            elif stream.lower() == 'sportsnet':
+                                if 'sportsnet' in tv_event['strChannel'].lower():
+                                    listitem.art.poster = SPORTSNET_THUMB
+                        except:
+                            continue
+                
+                # Add the listitem
+                listitems.append(listitem)
         except Exception as e:
             Script.log(e, lvl=Script.WARNING)
             pass
