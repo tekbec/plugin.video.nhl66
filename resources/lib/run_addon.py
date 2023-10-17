@@ -13,7 +13,7 @@ from .common.thumbnails import get_thumbnail_url
 from .platforms.thesportsdb.schedule import get_game
 from .platforms.thesportsdb.tvevents import get_tv_events
 from .exceptions import NotificationError
-import xbmcgui, xbmcaddon
+import xbmcgui, xbmcaddon, xbmc
 
 # API Constants
 NHL66_API_BASE_URL = 'https://api.nhl66.ir'
@@ -33,6 +33,9 @@ PREGAME_LABEL = 30002
 FINAL_LABEL = 30003
 REPLAY_LABEL = 30004
 
+# View mode
+VIEW_MODE = None
+
 
 
 
@@ -42,6 +45,8 @@ def run():
     try:
         try:
             codequick_run(process_errors=False)
+            if VIEW_MODE != None:
+                xbmc.executebuiltin("Container.SetViewMode({})".format(VIEW_MODE))
         except RuntimeError as e:
             if e.args[0] == 'No items found.':
                 return
@@ -61,7 +66,7 @@ def run():
 
 
 
-@Route.register
+@Route.register(content_type='files')
 def root(plugin: Route):
     """
     :param Route plugin: The plugin parent object.
@@ -76,8 +81,11 @@ def root(plugin: Route):
     yield replay_item
 
 
-@Route.register()
+@Route.register(content_type='videos')
 def get_games(plugin: Route, types: list):
+
+    global VIEW_MODE
+    VIEW_MODE = '53' # Shift
 
     # Make the request
     plugin.log('Getting NHL66 schedule...', lvl = Script.DEBUG)
@@ -114,6 +122,8 @@ def get_games(plugin: Route, types: list):
             listitem = Listitem.from_dict(game_links, label, params={'game_id': game['id']})
             listitem.info.title = label
             if thumbnail:
+                listitem.art.thumb  = thumbnail
+                listitem.art.fanart = thumbnail
                 listitem.art.poster = thumbnail
 
             # Add it in the right category
@@ -139,8 +149,12 @@ def get_games(plugin: Route, types: list):
 
 
 
-@Route.register
+@Route.register(content_type='videos')
 def game_links(plugin, game_id):
+
+    global VIEW_MODE
+    VIEW_MODE = '53' # Shift
+
     response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66', skip_cache=True)
     response.raise_for_status()
     state = json.loads(response.text)
@@ -213,24 +227,28 @@ def game_links(plugin, game_id):
                     listitem.label = label
                     listitem.info.title = label
                 # Set default thumbnails
+                thumbnail = None
                 if provider == 'nhltv':
-                    listitem.art.poster = NHLTV_THUMB
+                    thumbnail = NHLTV_THUMB
                 elif provider == 'espn':
-                    listitem.art.poster = ESPN_THUMB
+                    thumbnail = ESPN_THUMB
                 # Set custom thumbnails
                 if tv_events:
                     for tv_event in tv_events:
                         try:
                             if stream.lower() == 'french':
                                 if 'rds' in tv_event['strChannel'].lower():
-                                    listitem.art.poster = RDS_THUMB
+                                    thumbnail = RDS_THUMB
                                 elif 'tva sports' in tv_event['strChannel'].lower():
-                                    listitem.art.poster = TVASPORTS_THUMB
+                                    thumbnail = TVASPORTS_THUMB
                             elif stream.lower() == 'sportsnet':
                                 if 'sportsnet' in tv_event['strChannel'].lower():
-                                    listitem.art.poster = SPORTSNET_THUMB
+                                    thumbnail = SPORTSNET_THUMB
                         except:
                             continue
+                listitem.art.thumb  = thumbnail
+                listitem.art.fanart = thumbnail
+                listitem.art.poster = thumbnail
                 
                 # Add the listitem
                 listitems.append(listitem)
