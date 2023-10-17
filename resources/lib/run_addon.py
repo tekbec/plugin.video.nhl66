@@ -2,15 +2,18 @@
 from __future__ import unicode_literals
 
 # noinspection PyUnresolvedReferences
-from codequick import Route, Resolver, Script, Listitem, run
+from codequick import Route, Resolver, Script, Listitem
+from codequick import run as codequick_run
 from codequick.utils import bold, color, italic
 import json
 from datetime import datetime
 from .common.url import encode_proxy_url
 from .common.requests import get
+from .common.thumbnails import get_thumbnail_url
 from .platforms.thesportsdb.schedule import get_game
 from .platforms.thesportsdb.tvevents import get_tv_events
-import traceback
+from .exceptions import NotificationError
+import xbmcgui, xbmcaddon
 
 # API Constants
 NHL66_API_BASE_URL = 'https://api.nhl66.ir'
@@ -33,6 +36,30 @@ REPLAY_LABEL = 30004
 
 
 
+def run():
+    addon_data = xbmcaddon.Addon()
+    addon_icon = addon_data.getAddonInfo('icon')
+    try:
+        try:
+            codequick_run(process_errors=False)
+        except RuntimeError as e:
+            if e.args[0] == 'No items found.':
+                return
+            raise
+    except NotificationError as e:
+        Script.logger.exception(f'{str(e.title)}: {str(e.message)}')
+        dialog = xbmcgui.Dialog()
+        dialog.notification(e.title, e.message, addon_icon)
+        if e.args[0] == 'No items found.':
+            return
+    except Exception as e:
+        Script.logger.exception(str(e))
+        dialog = xbmcgui.Dialog()
+        dialog.notification(e.__class__.__name__, str(e), addon_icon)
+        return
+
+
+
 
 @Route.register
 def root(plugin: Route):
@@ -51,6 +78,7 @@ def root(plugin: Route):
 
 @Route.register()
 def get_games(plugin: Route, types: list):
+
     # Make the request
     plugin.log('Getting NHL66 schedule...', lvl = Script.DEBUG)
     response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
@@ -69,12 +97,9 @@ def get_games(plugin: Route, types: list):
     for game in games:
         try:
             start_datetime = datetime.fromisoformat(game['start_datetime'].replace('Z','+00:00'))
-            image = None
 
-            # Search TheSportsDB thumbnail
-            thesportsdb_event = get_game(start_datetime, game['home_abr'], game['away_abr'])
-            if thesportsdb_event:
-                image = thesportsdb_event['strThumb']
+            # Get thumbnail URL
+            thumbnail = get_thumbnail_url(game['home_abr'], game['away_abr'])
             
             # Build the label
             label = f'{game["away_name"]} @ {game["home_name"]} - {italic(start_datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))}'
@@ -88,8 +113,8 @@ def get_games(plugin: Route, types: list):
             # Create the list item
             listitem = Listitem.from_dict(game_links, label, params={'game_id': game['id']})
             listitem.info.title = label
-            if image:
-                listitem.art.poster = image
+            if thumbnail:
+                listitem.art.poster = thumbnail
 
             # Add it in the right category
             if game['status'] == 'P':

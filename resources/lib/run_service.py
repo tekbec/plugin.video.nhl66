@@ -4,7 +4,9 @@ from codequick.script import Script, Settings
 from copy import copy
 from datetime import datetime, timedelta
 from requests.structures import CaseInsensitiveDict
-import requests, re, urllib.parse, traceback
+from requests.exceptions import ProxyError
+from .exceptions import NotificationError
+import requests, re, urllib.parse, traceback, json, xbmcaddon, xbmcgui
 
 # For how many seconds cached responses should be valid
 CACHE_VALIDITY_DURATION = {
@@ -25,6 +27,15 @@ CUSTOM_RESPONSE_HEADERS = {
     'espn': {},
     'nhltv': {},
 }
+
+PROVIDER_NAMES = {
+    'espn': 'ESPN',
+    'nhltv': 'NHL.TV',
+    'nhl66': 'NHL66'
+}
+
+ADDON_DATA = xbmcaddon.Addon()
+ADDON_ICON = ADDON_DATA.getAddonInfo('icon')
 
 CACHE = {}
 CACHE_SIZE = 20
@@ -72,7 +83,13 @@ class RequestsHandler(BaseHTTPRequestHandler):
             # -------------------------------------------------------- #
             try:
                 resp = self._get_response()
-            except Exception as e:
+            except ProxyError:
+                self.log('Proxy Error.', Script.ERROR)
+                traceback.print_exc()
+                dialog = xbmcgui.Dialog()
+                dialog.notification('Proxy Error', f'Unable to connect to {PROVIDER_NAMES.get(self.provider, "unknown")} proxy.', ADDON_ICON)
+                return self._send(500, {'Content-Type': 'text/plain'}, b'Proxy Error')
+            except:
                 self.log('Unable to make request.', Script.ERROR)
                 traceback.print_exc()
                 return self._send(500, {'Content-Type': 'text/plain'}, b'Internal Server Error')
