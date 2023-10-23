@@ -204,33 +204,16 @@ def game_links(plugin, game_id):
                     label = f'{bold(color("Bugged", "crimson"))} - {label}'
                 elif link['status'] == 'P':
                     label = f'{bold(color("Planned", "deeppink"))} - {label}'
-                # Set the provider
-                provider = None
-                if 'espn' in link['provider'].lower():
-                    provider = 'espn'
-                elif 'nhl' in link['provider'].lower():
-                    provider = 'nhltv'
                 # Create the listitem
                 listitem = None
-                if link['url']:
-                    listitem = Listitem()
-                    listitem.set_path(encode_proxy_url(link['url'], provider=provider))
-                    listitem.label = label
-                    listitem.info.title = label
-                    listitem.listitem.setContentLookup(False)
-                    listitem.listitem.setMimeType('application/x-mpegURL')
-                    listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
-                    listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                    listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
-                else:
-                    listitem = Listitem.from_dict(play_link, label, params={'link_id': link['id']})
-                    listitem.label = label
-                    listitem.info.title = label
+                listitem = Listitem.from_dict(play_link, label, params={'link_id': link['id']})
+                listitem.label = label
+                listitem.info.title = label
                 # Set default thumbnails
                 thumbnail = None
-                if provider == 'nhltv':
+                if 'nhl' in link['provider'].lower():
                     thumbnail = NHLTV_THUMB
-                elif provider == 'espn':
+                elif 'espn' in link['provider'].lower():
                     thumbnail = ESPN_THUMB
                 # Set custom thumbnails
                 if tv_events:
@@ -261,20 +244,53 @@ def game_links(plugin, game_id):
 
 @Resolver.register
 def play_link(plugin: Resolver, link_id):
-    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66')
+    response = get(NHL66_API_BASE_URL + NHL66_SCHEDULE_PATH, 'nhl66', skip_cache=True)
     response.raise_for_status()
     state = json.loads(response.text)
     links = state['links']
-    for link in links:
-        try:
-            if link['id'] == link_id:
-                provider = None
-                if 'espn' in link['provider'].lower():
-                    provider = 'espn'
-                elif 'nhl' in link['provider'].lower():
-                    provider = 'nhltv'
-                encoded_url = encode_proxy_url(link['url'], provider=provider)
-                return plugin.extract_source(encoded_url, 3)
-        except Exception as e:
-            Script.log(str(e), lvl=Script.ERROR)
-    return []
+    games = state['games']
+
+    # Find the link
+    link = None
+    for tlink in links:
+        if tlink['id'] == link_id:
+            link = tlink
+            break
+    if link is None:
+        raise NotificationError('Parsing Error', 'Cannot find the requested link.')
+
+    # Check if url exists
+    if not link['url']:
+        raise NotificationError('Unavailable', 'This link is not available yet.')
+    
+    # Extract infos from the content id
+    content_id = link['content_id'].split('|')
+    game_id = int(content_id[1].replace('G',''))
+    stream_name = content_id[3]
+
+    # Find game associated with the link
+    game = None
+    for tgame in games:
+        if tgame['id'] == game_id:
+            game = tgame
+            break
+    if game is None:
+        raise NotificationError('Parsing Error', 'Cannot find the requested game.')
+
+    # Get the provider
+    provider = None
+    if 'espn' in link['provider'].lower():
+        provider = 'espn'
+    elif 'nhl' in link['provider'].lower():
+        provider = 'nhltv'
+    
+    # Build the list item
+    listitem = Listitem()
+    listitem.label = f'{game["away_abr"]} @ {game["home_abr"]} ({stream_name})'
+    listitem.set_path(encode_proxy_url(link['url'], provider=provider))
+    listitem.listitem.setContentLookup(False)
+    listitem.listitem.setMimeType('application/x-mpegURL')
+    listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
+    listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
+    listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
+    return listitem
