@@ -5,10 +5,12 @@ from __future__ import unicode_literals
 from codequick import Route, Resolver, Script, Listitem
 from codequick import run as codequick_run
 from codequick.utils import bold, color
+from codequick.script import Settings
 from .exceptions import NotificationError
-from .platforms.nhl66 import NHL66, Game, GameStatus, Link
+from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator
+from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
-import xbmcgui, xbmcaddon, xbmc
+import xbmcgui, xbmcaddon, xbmc, urllib.parse
 
 
 # Labels Constants
@@ -123,33 +125,50 @@ def game_links(plugin, game_id):
     # Create listitems
     for link in links:
         try:
-            # Create the list item
-            listitem = Listitem.from_dict(play_link, link.label, params={'link_id': link.id})
-            listitem.info.title = link.label
+            # Standard link
+            std_listitem = Listitem.from_dict(play_link, link.label, params={'link_id': link.id, 'premium': False})
+            std_listitem.info.title = link.label
             if link.thumbnail:
-                listitem.art.thumb  = link.thumbnail
-                listitem.art.fanart = link.thumbnail
-                listitem.art.poster = link.thumbnail
-            yield listitem
+                std_listitem.art.thumb  = link.thumbnail
+                std_listitem.art.fanart = link.thumbnail
+                std_listitem.art.poster = link.thumbnail
+            yield std_listitem
+            if link.premium_flavor:
+                std_listitem = Listitem.from_dict(play_link, link.premium_label, params={'link_id': link.id, 'premium': True})
+                std_listitem.info.title = link.premium_label
+                if link.thumbnail:
+                    std_listitem.art.thumb  = link.thumbnail
+                    std_listitem.art.fanart = link.thumbnail
+                    std_listitem.art.poster = link.thumbnail
+                yield std_listitem
         except Exception as e:
             Script.log(str(e), lvl=Script.ERROR)
 
 
 
 @Resolver.register
-def play_link(plugin: Resolver, link_id):
+def play_link(plugin: Resolver, link_id, premium):
     link: Link = Link.from_id(link_id, skip_cache=True)
     if link is None:
         raise NotificationError('Link Not Found', 'Cannot find the requested link.')
-    if link.url is None:
+    url = PremiumLinkGenerator.generate_premium_link(link) if premium else link.url
+    if url is None:
         raise NotificationError('Unavailable', 'This link is not available yet.')
+    print(url)
     # Build the list item
     listitem = Listitem()
     listitem.label = link.label
-    listitem.set_path(link.url)
+    listitem.set_path(url)
     listitem.listitem.setContentLookup(False)
     listitem.listitem.setMimeType('application/x-mpegURL')
     listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
     listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
     listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
+    if premium:
+        headers = {
+            'User-Agent': str(Settings.get_string('user_agent')),
+            'Origin': PREMIUM_ORIGIN
+        }
+        listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
+        listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
     return listitem

@@ -64,3 +64,11 @@ msgstr ""
 msgctxt "#33006"
 msgid "User Agent"
 msgstr ""
+
+msgctxt "#33007"
+msgid "Platform Settings"
+msgstr ""
+
+msgctxt "#33008"
+msgid "Premium Code"
+msgstr ""

@@ -7,6 +7,7 @@ from codequick import Script
 from codequick import Script
 from codequick.utils import bold, color
 from .utils import get_stateshot
+from .auth import Auth
 from datetime import datetime
 from .consts import RDS_THUMB, TVASPORTS_THUMB, SPORTSNET_THUMB, ESPN_THUMB, NHLTV_THUMB
 
@@ -29,7 +30,7 @@ class LinkProvider(Enum):
 
 class Link:
 
-    def __init__(self, id: int, content_id: str, url: Optional[str], status: LinkStatus, provider: LinkProvider, datetime: datetime, game = None):
+    def __init__(self, id: int, content_id: str, url: Optional[str], status: LinkStatus, provider: LinkProvider, datetime: datetime, game = None, premium_flavor: str = None):
         self.id = id
         self.content_id = content_id
         self.stream = content_id.split('|')[3]
@@ -38,6 +39,7 @@ class Link:
         self.provider = provider
         self.datetime = datetime
         self._game = game
+        self.premium_flavor = premium_flavor
 
 
     def get_game(self, skip_cache: bool = False):
@@ -68,6 +70,10 @@ class Link:
         elif self.status == LinkStatus.PLANNED:
             label = f'{bold(color("Planned", "deeppink"))} - {label}'
         return label
+    
+    @property
+    def premium_label(self) -> str:
+        return f'{bold(color("Premium", "cyan"))} - {self.label}'
     
     @property
     def game(self):
@@ -156,8 +162,13 @@ class Link:
                 status = LinkStatus.BUGGED
             else:
                 Script.log(f'Unknown link status identifier: "{response["status"]}".', lvl = Script.WARNING)
-
-            return Link(id=response['id'], content_id=response['content_id'], url=url, status=status, provider=provider, datetime=dt, game=game)
+            # Premium flavor
+            premium_flavor = None
+            if Auth.is_premium():
+                flavors = response.get('flavors', [])
+                if len(flavors) > 0:
+                    premium_flavor = flavors[0].get('unique_id', None)
+            return Link(id=response['id'], content_id=response['content_id'], url=url, status=status, provider=provider, datetime=dt, game=game, premium_flavor=premium_flavor)
         except:
             Script.log(f'Unable to parse the following link:', lvl = Script.ERROR)
             Script.log(f'{json.dumps(response, indent=4)}', lvl = Script.ERROR)

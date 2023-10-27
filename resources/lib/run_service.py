@@ -70,7 +70,7 @@ class RequestsHandler(BaseHTTPRequestHandler):
             # -------------------------------------------------------- #
             request_info = decode_proxy_url(self.path)
             self.skip_cache = request_info['skip_cache']
-            self.headers = CaseInsensitiveDict(request_info['headers'])
+            self.req_headers = CaseInsensitiveDict(request_info['headers'])
             self.url = request_info['url']
             self.extension = request_info['ext']
             self.filename = urllib.parse.urlparse(self.url).path.split('/')[-1]
@@ -161,6 +161,55 @@ class RequestsHandler(BaseHTTPRequestHandler):
         self.do_GET(method='HEAD')
 
 
+    def do_POST(self):
+        '''
+        Handles incoming POST requests
+        '''
+
+        try:
+            # -------------------------------------------------------- #
+            # Get informations about the request to make
+            # -------------------------------------------------------- #
+            request_info = decode_proxy_url(self.path)
+            self.skip_cache = request_info['skip_cache']
+            self.req_headers = CaseInsensitiveDict(request_info['headers'])
+            self.url = request_info['url']
+            self.extension = request_info['ext']
+            self.filename = urllib.parse.urlparse(self.url).path.split('/')[-1]
+            self.content_length = int(self.headers.get('Content-Length'))
+            self.body = self.rfile.read(self.content_length)
+            self.method = 'POST'
+            self.provider = request_info['provider']
+
+
+            # -------------------------------------------------------- #
+            # Make the request
+            # -------------------------------------------------------- #
+            try:
+                resp = self._get_response()
+            except ProxyError:
+                self.log('Proxy Error.', Script.ERROR)
+                traceback.print_exc()
+                dialog = xbmcgui.Dialog()
+                dialog.notification('Proxy Error', f'Unable to connect to {PROVIDER_NAMES.get(self.provider, "unknown")} proxy.', ADDON_ICON)
+                return self._send(500, {'Content-Type': 'text/plain'}, b'Proxy Error')
+            except:
+                self.log('Unable to make request.', Script.ERROR)
+                traceback.print_exc()
+                return self._send(500, {'Content-Type': 'text/plain'}, b'Internal Server Error')
+
+
+            # -------------------------------------------------------- #
+            # Requests that need no changes
+            # -------------------------------------------------------- #
+            return self._send(resp.status_code, self._filter_headers(resp.headers), resp.content)
+
+        except:
+            self.log('Unhandled exception.', Script.ERROR)
+            traceback.print_exc()
+            self._send(500, {'Content-Type': 'text/plain'}, b'Internal Server Error')
+
+
 
     # -------------------------------------------------------- #
     #
@@ -194,7 +243,7 @@ class RequestsHandler(BaseHTTPRequestHandler):
         '''
 
         session = self._get_provider_session(self.provider)
-        new_headers = self._add_provider_headers(self.headers)
+        new_headers = self._add_provider_headers(self.req_headers)
         proxies = self._get_provider_proxies(self.provider)
 
         self.log(f'URL.......: {self.url}')
@@ -203,7 +252,10 @@ class RequestsHandler(BaseHTTPRequestHandler):
             self.log(f'Proxy.....: {proxies.get("https", "")}')
         else:
             self.log('Proxy.....: None')
-        return session.get(self.url, headers=new_headers, proxies=proxies)
+        if self.method == 'POST':
+            return session.post(self.url, headers=new_headers, proxies=proxies, data=self.body)
+        else:
+            return session.get(self.url, headers=new_headers, proxies=proxies)
     
 
 

@@ -122,6 +122,7 @@ class Game:
                 status = GameStatus.FINAL
             else:
                 Script.log(f'Unknown game status identifier: "{response["status"]}".', lvl = Script.WARNING)
+
             # Get content ids
             return Game(
                 id=response['id'], 
