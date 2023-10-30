@@ -10,7 +10,7 @@ from .exceptions import NotificationError
 from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
-import xbmcgui, xbmcaddon, xbmc, urllib.parse
+import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper
 
 
 # Labels Constants
@@ -148,27 +148,33 @@ def game_links(plugin, game_id):
 
 @Resolver.register
 def play_link(plugin: Resolver, link_id, premium):
+
+    # Retrieve the link
     link: Link = Link.from_id(link_id, skip_cache=True)
     if link is None:
         raise NotificationError('Link Not Found', 'Cannot find the requested link.')
+    
+    # Retrieve the url
     url = PremiumLinkGenerator.generate_premium_link(link) if premium else link.url
     if url is None:
         raise NotificationError('Unavailable', 'This link is not available yet.')
-    print(url)
-    # Build the list item
-    listitem = Listitem()
-    listitem.label = link.label
-    listitem.set_path(url)
-    listitem.listitem.setContentLookup(False)
-    listitem.listitem.setMimeType('application/x-mpegURL')
-    listitem.listitem.setProperty('inputstream', 'inputstream.adaptive')
-    listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-    listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
-    if premium:
-        headers = {
-            'User-Agent': str(Settings.get_string('user_agent')),
-            'Origin': PREMIUM_ORIGIN
-        }
-        listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
-        listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
+
+    # Build the listitem
+    helper = inputstreamhelper.Helper('hls')
+    if helper.check_inputstream():
+        listitem = Listitem()
+        listitem.label = link.label
+        listitem.set_path(url)
+        listitem.listitem.setContentLookup(False)
+        listitem.listitem.setMimeType('application/x-mpegURL')
+        listitem.listitem.setProperty('inputstream', helper.inputstream_addon)
+        listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
+        listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
+        if premium:
+            headers = {
+                'User-Agent': str(Settings.get_string('user_agent')),
+                'Origin': PREMIUM_ORIGIN
+            }
+            listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
+            listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
     return listitem

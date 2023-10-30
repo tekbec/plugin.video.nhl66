@@ -3,7 +3,8 @@
 <addon id="plugin.video.nhl66" name="NHL66" version="1.0.6" provider-name="tekbec">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
-    <import addon="script.module.codequick" version="1.0.3"/>
+    <import addon="script.module.inputstreamhelper" version="0.6.1+matrix.1"/>
+    <import addon="script.module.codequick" version="1.0.3+matrix.1"/>
     <import addon="script.module.requests" version="2.31.0"/>
     <import addon="script.module.pysocks" version="1.7.0+matrix.1"/>
   </requires>
