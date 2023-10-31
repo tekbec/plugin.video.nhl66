@@ -2,6 +2,8 @@
 plugin.video.nhl66/
 venv/
 codequick/
+pyxbmct/
+inputstreamhelper/
 urlquick.py
 .debug
 __pycache__/

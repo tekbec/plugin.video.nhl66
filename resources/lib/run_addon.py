@@ -7,10 +7,12 @@ from codequick import run as codequick_run
 from codequick.utils import bold, color
 from codequick.script import Settings
 from .exceptions import NotificationError
-from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator
+from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
-import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper
+from .gui.premium.login import LoginWindow
+from .gui.premium.account import AccountWindow
+import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper, pyxbmct
 
 
 # Labels Constants
@@ -48,23 +50,48 @@ def run():
 
 
 
-@Route.register(content_type='files')
+@Route.register(content_type='videos', update_listing=True)
 def root(plugin: Route):
     """
-    :param Route plugin: The plugin parent object.
+    The home page route.
     """
+    # Live Events
     live_events_label = color(bold(plugin.localize(LIVE_EVENTS_LABEL)), 'limegreen')
     live_events_item = Listitem.from_dict(get_games, live_events_label, params={'status_filter': [GameStatus.LIVE, GameStatus.PREGAME]})
     live_events_item.info.title = live_events_label
     yield live_events_item
+
+    # Game Replays
     replay_label = color(bold(plugin.localize(REPLAY_LABEL)), 'gold')
     replay_item = Listitem.from_dict(get_games, replay_label, params={'status_filter': [GameStatus.FINAL]})
     replay_item.info.title = replay_label
     yield replay_item
 
+    # Premium
+    premium_label = f'{color(bold("Premium Account"), "magenta")}'
+    premium_item = Listitem.from_dict(premium_root, premium_label)
+    premium_item.info.title = premium_label
+    yield premium_item
+
+
+@Route.register
+def premium_root(plugin: Route):
+    window = None
+    if Auth.is_premium():
+        window = AccountWindow()
+    else:
+        window = LoginWindow()
+    if window:
+        window.doModal()
+        del window
+    return False
+
 
 @Route.register(content_type='videos')
 def get_games(plugin: Route, status_filter: List[GameStatus]):
+    """
+    The games list page route.
+    """
 
     global VIEW_MODE
     VIEW_MODE = '53' # Shift
@@ -110,6 +137,9 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
 
 @Route.register(content_type='videos')
 def game_links(plugin, game_id):
+    """
+    The links list page route.
+    """
 
     global VIEW_MODE
     VIEW_MODE = '53' # Shift
@@ -148,6 +178,9 @@ def game_links(plugin, game_id):
 
 @Resolver.register
 def play_link(plugin: Resolver, link_id, premium):
+    """
+    The link playing route.
+    """
 
     # Retrieve the link
     link: Link = Link.from_id(link_id, skip_cache=True)

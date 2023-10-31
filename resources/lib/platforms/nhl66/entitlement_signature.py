@@ -27,6 +27,15 @@ class EntitlementSignature:
             return ''
         
     @property
+    def formatted_premium_code(self) -> str:
+        premium_code = self.premium_code
+        if not premium_code:
+            return premium_code
+        elif len(premium_code) != 16:
+            return premium_code
+        return f'{premium_code[0:4]}-{premium_code[4:8]}-{premium_code[8:12]}-{premium_code[12:16]}'
+        
+    @property
     def entitlement_name(self) -> str:
         if not self._signature:
             return ''

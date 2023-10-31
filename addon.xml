@@ -7,6 +7,8 @@
     <import addon="script.module.codequick" version="1.0.3+matrix.1"/>
     <import addon="script.module.requests" version="2.31.0"/>
     <import addon="script.module.pysocks" version="1.7.0+matrix.1"/>
+    <import addon="script.module.pyxbmct" version="1.3.2+matrix.1"/>
+    <import addon="script.module.qrcode" version="6.1.0+matrix.3"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>

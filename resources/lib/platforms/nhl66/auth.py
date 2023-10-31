@@ -4,13 +4,28 @@ from codequick.script import Settings
 from typing import Optional
 from ...common.requests import post
 from .entitlement_signature import EntitlementSignature
-from .consts import PREMIUM_ACCOUNT_API_BASE_URL, SIGNATURE_PATH
+from .consts import PREMIUM_ACCOUNT_API_BASE_URL, SIGNATURE_PATH, INFO_PATH
 from .device import Device
-import json, traceback, xbmcaddon
+from codequick.support import addon_data
+from datetime import datetime, timedelta
+import json, traceback, xbmcaddon, xbmc
 
 class Auth:
 
     _auth_failed = False
+
+    @staticmethod
+    def login(premium_code: str) -> bool:
+        addon_data.setSetting('premium_code', premium_code)
+        success = Auth.is_premium()
+        if not success:
+            addon_data.setSetting('premium_code', '')
+        return success
+    
+    @staticmethod
+    def logout() -> bool:
+        addon_data.setSetting('premium_code', '')
+        return True
 
     @staticmethod
     def is_premium() -> bool:
@@ -19,6 +34,46 @@ class Auth:
             return False
         else:
             return True
+        
+    @staticmethod
+    def get_info() -> dict:
+        signature = Auth.get_signature()
+        if not signature or signature.expired:
+            return {}
+        Script.log('Getting premium account info...')
+        response = post(url=PREMIUM_ACCOUNT_API_BASE_URL + INFO_PATH, provider='nhl66_premium', skip_cache=True, json={
+            'code': signature.premium_code,
+            'noaddr': True
+        })
+        if response.status_code != 200:
+            Script.log(f'Response status code: {str(response.status_code)}', lvl=Script.ERROR)
+            Script.log(f'Response body: {response.text}', lvl=Script.ERROR)
+            return {}
+        else:
+            try:
+                response_dict = json.loads(response.text)
+                for payment_link in response_dict.get('payment_links', []):
+                    if payment_link.get('entitlement', {}).get('id') != 1:
+                        continue
+                    expires_at = payment_link.get('expires_at')
+                    if expires_at:
+                        expires_at = datetime.fromisoformat(expires_at.replace('Z','+00:00'))
+                        expires_at = expires_at.astimezone()
+                    expires_in = payment_link.get('seconds_left')
+                    if expires_in:
+                        expires_in = timedelta(seconds=expires_in)
+                    return {
+                        'code': response_dict.get('code'),
+                        'email': response_dict.get('email'),
+                        'expires_at': expires_at,
+                        'expires_in': expires_in
+                    }
+                return {}
+            except Exception as e:
+                Script.log(str(e), lvl=Script.ERROR)
+                traceback.print_exc()
+                return {}
+        
 
     @staticmethod
     def get_signature() -> Optional[EntitlementSignature]:
