@@ -1,4 +1,6 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+from codequick.storage import PersistentDict
 from .common.url import encode_proxy_url, decode_proxy_url, urljoin
 from codequick.script import Script, Settings
 from copy import copy
@@ -288,12 +290,16 @@ class RequestsHandler(BaseHTTPRequestHandler):
         '''
         if provider == None:
             return None
-        val = Settings.get_string(f'{provider}_proxy')
-        if not val:
+        url = None
+        with PersistentDict('proxies.pickle') as db:
+            entry = db.get(provider)
+            if entry:
+                url = entry.get('url')
+        if not url:
             return None
         return {
-            'http': str(val),
-            'https': str(val)
+            'http': str(url),
+            'https': str(url)
         }
 
 

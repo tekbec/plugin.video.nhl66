@@ -133,9 +133,9 @@ class Link:
             dt = datetime.fromisoformat(response['event_datetime'].replace('Z','+00:00'))
             # Provider
             provider = LinkProvider.UNKNOWN
-            if response['provider'] == 'NHL TV':
+            if 'nhl' in response['provider'].lower():
                 provider = LinkProvider.NHLTV
-            elif response['provider'] == 'ESPN':
+            elif 'espn' in response['provider'].lower():
                 provider = LinkProvider.ESPN
             else:
                 Script.log(f'Unknown link provider identifier: "{response["provider"]}".', lvl = Script.WARNING)

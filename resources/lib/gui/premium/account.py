@@ -73,12 +73,24 @@ class AccountWindow(pyxbmct.AddonDialogWindow):
         self.connect(self.close_button, self.close)
 
         # Logout button
-        self.login_button = pyxbmct.Button('Logout')
-        self.placeControl(self.login_button, 5, 6, 1, 6)
-        self.connect(self.login_button, self.logout)
+        self.logout_button = pyxbmct.Button('Logout')
+        self.placeControl(self.logout_button, 5, 6, 1, 6)
+        self.connect(self.logout_button, self.logout)
 
     def set_navigation(self):
-        pass
+        self.setFocus(self.close_button)
+        self.close_button.setNavigation(
+            self.close_button,
+            self.close_button,
+            self.close_button,
+            self.logout_button
+        )
+        self.logout_button.setNavigation(
+            self.logout_button,
+            self.logout_button,
+            self.close_button,
+            self.logout_button
+        )
 
     def logout(self):
         from .login import LoginWindow

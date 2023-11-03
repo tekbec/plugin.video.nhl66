@@ -47,11 +47,12 @@ class LoginWindow(pyxbmct.AddonDialogWindow):
         self.connect(self.login_button, self.login)
 
     def set_navigation(self):
-        self.code_field.controlUp(self.login_button)
+        self.setFocus(self.code_field)
         self.code_field.controlDown(self.login_button)
-        self.close_button.controlLeft(self.login_button)
+        self.close_button.controlUp(self.code_field)
         self.close_button.controlRight(self.login_button)
-        self.login_button.setNavigation(self.code_field, self.code_field, self.close_button, self.close_button)
+        self.login_button.controlUp(self.code_field)
+        self.login_button.controlLeft(self.close_button)
         self.setFocus(self.code_field)
 
     def login(self):

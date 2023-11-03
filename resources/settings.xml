@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="33000">
-        <setting label="33007" type="lsep"/>
-        <setting label="33008" type="text" id="premium_code" default=""/>
-        <setting label="33001" type="lsep"/>
-        <setting label="33004" type="text" id="nhl66_proxy" default=""/>
-        <setting label="33002" type="text" id="espn_proxy" default=""/>
-        <setting label="33003" type="text" id="nhltv_proxy" default=""/>
         <setting label="33005" type="lsep"/>
         <setting label="33006" type="text" id="user_agent" default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"/>
     </category>

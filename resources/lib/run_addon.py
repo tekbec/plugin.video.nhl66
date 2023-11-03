@@ -12,6 +12,8 @@ from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
 from .gui.premium.login import LoginWindow
 from .gui.premium.account import AccountWindow
+from .gui.proxies.proxies import ProxiesWindow
+from .gui.modal import doModal
 import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper, pyxbmct
 
 
@@ -73,6 +75,12 @@ def root(plugin: Route):
     premium_item.info.title = premium_label
     yield premium_item
 
+    # Premium
+    proxies_label = f'{color(bold("Proxies"), "cyan")}'
+    proxies_item = Listitem.from_dict(proxies_modal, proxies_label)
+    proxies_item.info.title = proxies_label
+    yield proxies_item
+
 
 @Route.register
 def premium_root(plugin: Route):
@@ -84,6 +92,11 @@ def premium_root(plugin: Route):
     if window:
         window.doModal()
         del window
+    return False
+
+@Route.register
+def proxies_modal(plugin: Route):
+    doModal(ProxiesWindow)
     return False
 
 
