@@ -7,7 +7,7 @@ from codequick import run as codequick_run
 from codequick.utils import bold, color
 from codequick.script import Settings
 from .exceptions import NotificationError
-from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth
+from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth, LinkStatus
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
 from .gui.premium.login import LoginWindow
@@ -216,6 +216,8 @@ def play_link(plugin: Resolver, link_id, premium):
         listitem.listitem.setProperty('inputstream', helper.inputstream_addon)
         listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
         listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
+
+        # Set premium-specific requests headers
         if premium:
             headers = {
                 'User-Agent': str(Settings.get_string('user_agent')),
@@ -223,4 +225,15 @@ def play_link(plugin: Resolver, link_id, premium):
             }
             listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
             listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
+
+        # Force live
+        if link.status in [LinkStatus.LIVE, LinkStatus.PLANNED, LinkStatus.DELAYED]:
+            listitem.listitem.setProperty('ResumeTime', '43200')
+            listitem.listitem.setProperty('TotalTime', '1')
+
+        # Force replay
+        if link.status in [LinkStatus.REPLAY]:
+            listitem.listitem.setProperty('ResumeTime', '1')
+            listitem.listitem.setProperty('TotalTime', '1')
+
     return listitem
