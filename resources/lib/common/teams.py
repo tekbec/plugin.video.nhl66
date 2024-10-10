@@ -252,6 +252,15 @@ TEAMS = {
         'svg_light': 'https://assets.nhle.com/logos/nhl/svg/TOR_light.svg',
         'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/TOR_dark.svg',
     },
+    'uta': {
+        'thesportsdb_id': '148494',
+        'country': 'US',
+        'city': 'Utah',
+        'short_name': 'Utah Hockey Club',
+        'long_name': 'Utah Hockey Club',
+        'svg_light': 'https://assets.nhle.com/logos/nhl/svg/UTA_light.svg',
+        'svg_dark' : 'https://assets.nhle.com/logos/nhl/svg/UTA_dark.svg',
+    },
     'van': {
         'thesportsdb_id': '134850',
         'country': 'CA',
