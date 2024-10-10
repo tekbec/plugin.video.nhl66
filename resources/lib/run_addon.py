@@ -12,6 +12,7 @@ from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
 from .gui.premium.login import LoginWindow
 from .gui.premium.account import AccountWindow
+from .gui.premium.expired import ExpiredWindow
 from .gui.proxies.proxies import ProxiesWindow
 from .gui.modal import doModal
 import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper, pyxbmct
@@ -85,10 +86,14 @@ def root(plugin: Route):
 @Route.register
 def premium_root(plugin: Route):
     window = None
-    if Auth.is_premium():
-        window = AccountWindow()
+    if Auth.is_logged():
+        if Auth.is_premium():
+            window = AccountWindow()
+        else:
+            window = ExpiredWindow()
     else:
         window = LoginWindow()
+    
     if window:
         window.doModal()
         del window

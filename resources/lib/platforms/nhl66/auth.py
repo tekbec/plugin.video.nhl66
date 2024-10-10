@@ -26,6 +26,10 @@ class Auth:
     def logout() -> bool:
         addon_data.setSetting('premium_code', '')
         return True
+    
+    @staticmethod
+    def is_logged() -> bool:
+        return True if Settings.get_string('premium_code') else False
 
     @staticmethod
     def is_premium() -> bool:
