@@ -6,10 +6,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plugin.video.nhl66\n"
 "Report-Msgid-Bugs-To: https://github.com/tekbec/plugin.video.nhl66\n"
-"POT-Creation-Date: 2023-10-08 20:20-0400\n"
+"POT-Creation-Date: 2024-10-10 18:30-0400\n"
 "PO-Revision-Date: 2024-10-10 18:30-0400\n"
 "Last-Translator: tekbec\n"
-"Language-Team: English\n"
+"Language-Team: French\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,152 +18,150 @@ msgstr ""
 
 msgctxt "#30000"
 msgid "Live Events"
-msgstr ""
-
+msgstr "En direct"
 
 msgctxt "#30001"
 msgid "Live"
-msgstr ""
+msgstr "En direct"
 
 msgctxt "#30002"
 msgid "Pre Game"
-msgstr ""
+msgstr "Avant-match"
 
 msgctxt "#30003"
 msgid "Final"
-msgstr ""
+msgstr "Final"
 
 msgctxt "#30004"
 msgid "Game Replays"
-msgstr ""
+msgstr "Rediffusions"
 
 msgctxt "#30005"
 msgid "Premium Account"
-msgstr ""
+msgstr "Compte premium"
 
 msgctxt "#30006"
 msgid "Proxies"
-msgstr ""
+msgstr "Proxy"
 
 msgctxt "#30007"
 msgid "Edit"
-msgstr ""
+msgstr "Modifier"
 
 msgctxt "#30008"
 msgid "Clear"
-msgstr ""
+msgstr "Retirer"
 
 msgctxt "#30009"
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
 msgctxt "#30010"
 msgid "No proxy"
-msgstr ""
+msgstr "Aucun proxy"
 
 msgctxt "#30011"
 msgid "Custom"
-msgstr ""
+msgstr "Personnalisé"
 
 msgctxt "#30012"
 msgid "Selected"
-msgstr ""
+msgstr "Sélectionné"
 
 msgctxt "#30013"
 msgid "Location"
-msgstr ""
+msgstr "Localisation"
 
 msgctxt "#30014"
 msgid "Username"
-msgstr ""
+msgstr "Nom d'utilisateur"
 
 msgctxt "#30015"
 msgid "Password"
-msgstr ""
+msgstr "Mot de passe"
 
 msgctxt "#30016"
 msgid "Credentials"
-msgstr ""
+msgstr "Identifiants"
 
 msgctxt "#30017"
 msgid "Save"
-msgstr ""
+msgstr "Sauvegarder"
 
 msgctxt "#30018"
 msgid "Provider"
-msgstr ""
+msgstr "Fournisseur"
 
 msgctxt "#30019"
 msgid "Custom Entry"
-msgstr ""
+msgstr "Entrée personnalisée"
 
 msgctxt "#30020"
 msgid "Premium Code"
-msgstr ""
+msgstr "Code premium"
 
 msgctxt "#30021"
 msgid "Login"
-msgstr ""
+msgstr "Connexion"
 
 msgctxt "#30022"
 msgid "Scan to retrieve your code"
-msgstr ""
+msgstr "Scannez pour trouver votre code"
 
 msgctxt "#30023"
 msgid "Your account is expired."
-msgstr ""
+msgstr "Votre compte est expiré"
 
 msgctxt "#30024"
 msgid "Logout"
-msgstr ""
+msgstr "Se déconnecter"
 
 msgctxt "#30025"
 msgid "Replay"
-msgstr ""
+msgstr "Rediffusion"
 
 msgctxt "#30026"
 msgid "Planned"
-msgstr ""
+msgstr "Planifié"
 
 msgctxt "#30027"
 msgid "Bugged"
-msgstr ""
-
+msgstr "Buggé"
 
 
 
 msgctxt "#33000"
 msgid "General"
-msgstr ""
+msgstr "Général"
 
 msgctxt "#33001"
 msgid "Proxies"
-msgstr ""
+msgstr "Proxy"
 
 msgctxt "#33002"
 msgid "ESPN"
-msgstr ""
+msgstr "ESPN"
 
 msgctxt "#33003"
 msgid "NHL.TV"
-msgstr ""
+msgstr "NHL.TV"
 
 msgctxt "#33004"
 msgid "NHL66"
-msgstr ""
+msgstr "NHL66"
 
 msgctxt "#33005"
 msgid "Requests"
-msgstr ""
+msgstr "Requêtes"
 
 msgctxt "#33006"
 msgid "User Agent"
-msgstr ""
+msgstr "User Agent"
 
 msgctxt "#33007"
 msgid "Platform Settings"
-msgstr ""
+msgstr "Paramètres de plateforme"
 
 msgctxt "#33008"
 msgid "Premium Code"
-msgstr ""
+msgstr "Code premium"

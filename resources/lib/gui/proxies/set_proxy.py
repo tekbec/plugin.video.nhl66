@@ -1,18 +1,21 @@
 from codequick.storage import PersistentDict
+from codequick import Script
 import pyxbmct, xbmcgui
 from codequick.script import Script
 from .consts import proxies_providers
 from ..modal import ModalWindow
+from ...common.labels import labels
 
 # Create a class for our UI
 class SetProxyWindow(ModalWindow):
 
     def __init__(self, title='Proxy', platform=None):
+        title = Script.localize(labels.get('proxies'))
         self.platform = platform
         self.providers = {
             'custom': {
                 'id': 'custom',
-                'name': 'Custom'
+                'name': Script.localize(labels.get('custom'))
             }
         }
         self.providers.update(proxies_providers)
@@ -58,7 +61,7 @@ class SetProxyWindow(ModalWindow):
             self.set_grid(12, 12)
 
         # Provider Selection
-        self.set_control('provider_label', 'label', 0, 0, 1, 12, label='------------------------ Provider ------------------------', alignment=6, font='font14')
+        self.set_control('provider_label', 'label', 0, 0, 1, 12, label=f'------------------------ {Script.localize(labels.get("provider"))} ------------------------', alignment=6, font='font14')
         self.set_control('provider_list',  'list',  1, 1, 3, 4, action=self.on_provider_change, items=[x['name'] for x in self.providers.values()], _alignmentY=6)
         self.set_control('selected_provider_label', 'label', 1, 5, 2, 7, label=f'Selected: {self.provider["name"]}', alignment=6)
 
@@ -72,7 +75,7 @@ class SetProxyWindow(ModalWindow):
             if self.get_control('username_edit'): self.del_control('username_edit')
             if self.get_control('password_edit'): self.del_control('password_edit')
             # Create specific controls
-            self.set_control('proxy_label', 'label', 3, 0, 1, 12, label='------------------------ Custom Entry ------------------------', alignment=6, font='font14')
+            self.set_control('proxy_label', 'label', 3, 0, 1, 12, label=f'------------------------ {Script.localize(labels.get("custom_entry"))} ------------------------', alignment=6, font='font14')
             self.set_control('proxy_edit', 'edit', 4, 0, 1, 12, label='Proxy:')
 
         # Provider
@@ -81,20 +84,20 @@ class SetProxyWindow(ModalWindow):
             if self.get_control('proxy_label'): self.del_control('proxy_label')
             if self.get_control('proxy_edit'): self.del_control('proxy_edit')
             # Create specific controls
-            self.set_control('location_label', 'label', 3, 0, 1, 12, label='------------------------ Location ------------------------', alignment=6, font='font14')
+            self.set_control('location_label', 'label', 3, 0, 1, 12, label=f'------------------------ {Script.localize(labels.get("location"))} ------------------------', alignment=6, font='font14')
             self.set_control('location_list',  'list',  4, 1, 4, 10, action=self.on_location_change, items=[self.format_location_name(x) for x in self.get_locations().values()])
-            self.set_control('selected_location_label', 'label', 7, 0, 1, 12, label=f'Selected: {self.format_location_name(self.location)}', alignment=6)
-            self.set_control('credentials_label', 'label', 8, 0, 1, 12, label='------------------------ Credentials ------------------------', alignment=6, font='font14')
-            self.set_control('username_edit', 'edit', 9, 0, 1, 12, label='Username:', text=self.username)
-            self.set_control('password_edit', 'edit', 10, 0, 1, 12, label='Password:', text=self.password)
+            self.set_control('selected_location_label', 'label', 7, 0, 1, 12, label=f'{Script.localize(labels.get("selected"))}: {self.format_location_name(self.location)}', alignment=6)
+            self.set_control('credentials_label', 'label', 8, 0, 1, 12, label=f'------------------------ {Script.localize(labels.get("credentials"))} ------------------------', alignment=6, font='font14')
+            self.set_control('username_edit', 'edit', 9, 0, 1, 12, label=f'{Script.localize(labels.get("username"))}:', text=self.username)
+            self.set_control('password_edit', 'edit', 10, 0, 1, 12, label=f'{Script.localize(labels.get("password"))}:', text=self.password)
 
         # Footer
         if self.provider['id'] == 'custom':
-            self.set_control('close', 'button', 5, 0, 1, 6, action=self.close, label='Close')
-            self.set_control('save',  'button', 5, 6, 1, 6, action=self.on_save, label='Save' )
+            self.set_control('close', 'button', 5, 0, 1, 6, action=self.close, label=Script.localize(labels.get("close")))
+            self.set_control('save',  'button', 5, 6, 1, 6, action=self.on_save, label=Script.localize(labels.get("save")))
         else:
-            self.set_control('close', 'button', 11, 0, 1, 6, action=self.close, label='Close')
-            self.set_control('save',  'button', 11, 6, 1, 6, action=self.on_save, label='Save' )
+            self.set_control('close', 'button', 11, 0, 1, 6, action=self.close, label=Script.localize(labels.get("close")))
+            self.set_control('save',  'button', 11, 6, 1, 6, action=self.on_save, label=Script.localize(labels.get("save")))
         
         self.setFocus(self.get_control('provider_list'))
         self.set_navigation()
@@ -181,7 +184,7 @@ class SetProxyWindow(ModalWindow):
                     self.location = locations_list[index]
 
         # Always update the selected location label
-        return self.set_control('selected_location_label', 'label', 7, 0, 1, 12, label=f'Selected: {self.format_location_name(self.location)}', alignment=6)
+        return self.set_control('selected_location_label', 'label', 7, 0, 1, 12, label=f'{Script.localize(labels.get("selected"))}: {self.format_location_name(self.location)}', alignment=6)
 
 
 

@@ -3,12 +3,14 @@ import qrcode
 import os.path
 from ...platforms.nhl66 import Auth
 from codequick import Script
+from ...common.labels import labels
 
 # Create a class for our UI
 class LoginWindow(pyxbmct.AddonDialogWindow):
 
     def __init__(self, title=''):
         """Class constructor"""
+        title = Script.localize(labels.get('premium_account'))
         # Call the base class' constructor.
         super(LoginWindow, self).__init__(title)
         # Set width, height and the grid parameters
@@ -29,20 +31,20 @@ class LoginWindow(pyxbmct.AddonDialogWindow):
         self.placeControl(image, 0, 1, rowspan=4, columnspan=2)
 
         # QR Code Subtitle
-        label = pyxbmct.Label('Scan to retrieve your code', alignment=2)
+        label = pyxbmct.Label(Script.localize(labels.get('scan_premium_code')), alignment=2)
         self.placeControl(label, 4, 0, 1, 4)
 
         # Premium Code
-        self.code_field = pyxbmct.Edit('Premium Code:')
+        self.code_field = pyxbmct.Edit(f'{Script.localize(labels.get("premium_code"))}:')
         self.placeControl(self.code_field, 5, 0, 1, 4)
 
         # Close button
-        self.close_button = pyxbmct.Button('Close')
+        self.close_button = pyxbmct.Button(Script.localize(labels.get("close")))
         self.placeControl(self.close_button, 6, 0, 1, 2)
         self.connect(self.close_button, self.close)
 
         # Login button
-        self.login_button = pyxbmct.Button('Login')
+        self.login_button = pyxbmct.Button(Script.localize(labels.get("login")))
         self.placeControl(self.login_button, 6, 2, 1, 2)
         self.connect(self.login_button, self.login)
 

@@ -4,12 +4,12 @@ from .team import Team
 from typing import Optional, List
 from enum import Enum
 from codequick import Script
-from codequick import Script
 from codequick.utils import bold, color
 from .utils import get_stateshot
 from .auth import Auth
 from datetime import datetime
 from .consts import RDS_THUMB, TVASPORTS_THUMB, SPORTSNET_THUMB, ESPN_THUMB, NHLTV_THUMB
+from ...common.labels import labels
 
 import json, traceback
 
@@ -62,13 +62,13 @@ class Link:
         elif self.provider == LinkProvider.ESPN:
             label = f'ESPN - {label}'
         if self.status == LinkStatus.LIVE:
-            label = f'{bold(color("Live", "limegreen"))} - {label}'
+            label = f'{bold(color(Script.localize(labels.get("live")), "limegreen"))} - {label}'
         elif self.status == LinkStatus.REPLAY:
-            label = f'{bold(color("Replay", "gold"))} - {label}'
+            label = f'{bold(color(Script.localize(labels.get("replay")), "gold"))} - {label}'
         elif self.status == LinkStatus.BUGGED:
-            label = f'{bold(color("Bugged", "crimson"))} - {label}'
+            label = f'{bold(color(Script.localize(labels.get("bugged")), "crimson"))} - {label}'
         elif self.status == LinkStatus.PLANNED:
-            label = f'{bold(color("Planned", "deeppink"))} - {label}'
+            label = f'{bold(color(Script.localize(labels.get("planned")), "deeppink"))} - {label}'
         return label
     
     @property

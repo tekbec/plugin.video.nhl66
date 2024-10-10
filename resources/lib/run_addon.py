@@ -6,6 +6,7 @@ from codequick import Route, Resolver, Script, Listitem
 from codequick import run as codequick_run
 from codequick.utils import bold, color
 from codequick.script import Settings
+from .common.labels import labels
 from .exceptions import NotificationError
 from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth, LinkStatus
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
@@ -16,11 +17,6 @@ from .gui.premium.expired import ExpiredWindow
 from .gui.proxies.proxies import ProxiesWindow
 from .gui.modal import doModal
 import xbmcgui, xbmcaddon, xbmc, urllib.parse, inputstreamhelper, pyxbmct
-
-
-# Labels Constants
-LIVE_EVENTS_LABEL = 30000
-REPLAY_LABEL = 30004
 
 # View mode
 VIEW_MODE = None
@@ -59,25 +55,25 @@ def root(plugin: Route):
     The home page route.
     """
     # Live Events
-    live_events_label = color(bold(plugin.localize(LIVE_EVENTS_LABEL)), 'limegreen')
+    live_events_label = color(bold(plugin.localize(labels.get('live_events'))), 'limegreen')
     live_events_item = Listitem.from_dict(get_games, live_events_label, params={'status_filter': [GameStatus.LIVE, GameStatus.PREGAME]})
     live_events_item.info.title = live_events_label
     yield live_events_item
 
     # Game Replays
-    replay_label = color(bold(plugin.localize(REPLAY_LABEL)), 'gold')
+    replay_label = color(bold(plugin.localize(labels.get('game_replays'))), 'gold')
     replay_item = Listitem.from_dict(get_games, replay_label, params={'status_filter': [GameStatus.FINAL]})
     replay_item.info.title = replay_label
     yield replay_item
 
     # Premium
-    premium_label = f'{color(bold("Premium Account"), "magenta")}'
+    premium_label = f'{color(bold(plugin.localize(labels.get("premium_account"))), "magenta")}'
     premium_item = Listitem.from_dict(premium_root, premium_label)
     premium_item.info.title = premium_label
     yield premium_item
 
     # Premium
-    proxies_label = f'{color(bold("Proxies"), "cyan")}'
+    proxies_label = f'{color(bold(plugin.localize(labels.get("proxies"))), "cyan")}'
     proxies_item = Listitem.from_dict(proxies_modal, proxies_label)
     proxies_item.info.title = proxies_label
     yield proxies_item

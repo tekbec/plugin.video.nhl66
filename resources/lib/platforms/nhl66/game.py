@@ -3,12 +3,12 @@ from .team import Team
 from typing import Optional, List
 from enum import Enum
 from codequick import Script
+from ...common.labels import labels
 from .link import Link
 from .utils import get_stateshot
 from datetime import datetime
 from codequick import Script
 from codequick.utils import bold, color, italic
-from .consts import PREGAME_LABEL, LIVE_LABEL, FINAL_LABEL
 from ...platforms.thesportsdb.schedule import get_game
 from ...platforms.thesportsdb.tvevents import get_tv_events
 from ...common.thumbnails import get_thumbnail_url
@@ -74,11 +74,11 @@ class Game:
         # Label
         label = f'{self.away_team.full_name} @ {self.home_team.full_name} - {italic(self.datetime.astimezone().strftime("%Y/%m/%d - %H:%M"))}'
         if self.status == GameStatus.PREGAME:
-            label = f'{color(bold(Script.localize(PREGAME_LABEL)), "deeppink" )} - {label}'
+            label = f'{color(bold(Script.localize(labels.get("pregame"))), "deeppink" )} - {label}'
         if self.status == GameStatus.LIVE:
-            label = f'{color(bold(Script.localize(LIVE_LABEL)),    "limegreen")} - {label}'
+            label = f'{color(bold(Script.localize(labels.get("live"))),    "limegreen")} - {label}'
         if self.status == GameStatus.FINAL:
-            label = f'{color(bold(Script.localize(FINAL_LABEL)),   "gold"     )} - {label}'
+            label = f'{color(bold(Script.localize(labels.get("final"))),   "gold"     )} - {label}'
         return label
         
 

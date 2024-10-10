@@ -1,11 +1,14 @@
 from codequick.storage import PersistentDict
+from codequick import Script
 import pyxbmct, xbmcgui
 from ..modal import ModalWindow
+from ...common.labels import labels
 
 # Create a class for our UI
 class ProxiesWindow(ModalWindow):
 
     def __init__(self, title='Proxies'):
+        title = Script.localize(labels.get('proxies'))
         self.platforms = [
             {
                 'id': 'nhltv',
@@ -40,14 +43,14 @@ class ProxiesWindow(ModalWindow):
         for platform in self.platforms:
             self.set_control(f'{platform["name"]}_label', 'label', i, 0, 1, 12, label=f'------------------------ {platform["name"]} ------------------------', alignment=6, font='font14')
             self.set_control(f'{platform["name"]}_fade',   'fade'  , i+1, 0, 1, 12, label=self.get_proxy_label(platform['id']), _alignment=6)
-            self.set_control(f'{platform["name"]}_edit_button', 'button', i+2, 3, 1, 3, action=self.edit(platform), label='Edit')
-            self.set_control(f'{platform["name"]}_clear_button', 'button', i+2, 6, 1, 3, action=self.clear(platform), label='Clear')
+            self.set_control(f'{platform["name"]}_edit_button', 'button', i+2, 3, 1, 3, action=self.edit(platform), label=Script.localize(labels.get('edit')))
+            self.set_control(f'{platform["name"]}_clear_button', 'button', i+2, 6, 1, 3, action=self.clear(platform), label=Script.localize(labels.get('clear')))
             if i == 0:
                 self.setFocus(self.get_control(f'{platform["name"]}_edit_button'))
             i += 3
 
         # Footer
-        self.set_control('close_button', 'button', self.row_count-1, 9, 1, 3, action=self.close, label='Close')
+        self.set_control('close_button', 'button', self.row_count-1, 9, 1, 3, action=self.close, label=Script.localize(labels.get('close')))
 
         # Set Navigation Controls
         self.set_navigation()
@@ -77,7 +80,7 @@ class ProxiesWindow(ModalWindow):
             url = None
             if entry:
                 url = entry.get('url')
-            if not url: return 'No proxy'
+            if not url: return Script.localize(labels.get('no_proxy'))
             return url
             
 

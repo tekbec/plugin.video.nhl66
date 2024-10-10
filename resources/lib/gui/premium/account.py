@@ -1,11 +1,14 @@
 import pyxbmct
 from ...platforms.nhl66 import Auth
+from codequick import Script
+from ...common.labels import labels
 
 # Create a class for our UI
 class AccountWindow(pyxbmct.AddonDialogWindow):
 
     def __init__(self, title='Premium Account'):
         """Class constructor"""
+        title = Script.localize(labels.get('premium_account'))
         # Call the base class' constructor.
         super(AccountWindow, self).__init__(title)
         # Get account info

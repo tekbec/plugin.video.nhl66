@@ -17,13 +17,6 @@ TVASPORTS_THUMB = 'https://i.imgur.com/lonf7w3.png'
 RDS_THUMB       = 'https://i.imgur.com/qhrFsYh.png'
 SPORTSNET_THUMB = 'https://i.imgur.com/qB7bKBT.png'
 
-# Labels
-LIVE_EVENTS_LABEL = 30000
-LIVE_LABEL = 30001
-PREGAME_LABEL = 30002
-FINAL_LABEL = 30003
-REPLAY_LABEL = 30004
-
 # Teams
 TEAMS = [
     Team(abbreviation='ana', city='Anaheim',      name='Ducks',          country='US', tsdb_id='134846', logo_light_url='https://assets.nhle.com/logos/nhl/svg/ANA_light.svg', logo_dark_url='https://assets.nhle.com/logos/nhl/svg/ANA_dark.svg'),
