@@ -229,7 +229,7 @@ def play_link(plugin: Resolver, link_id, premium):
 
         # Force live
         if link.status in [LinkStatus.LIVE, LinkStatus.PLANNED, LinkStatus.DELAYED]:
-            listitem.listitem.setProperty('ResumeTime', '43200')
+            listitem.listitem.setProperty('ResumeTime', str(60*60*24*365))
             listitem.listitem.setProperty('TotalTime', '1')
 
         # Force replay
