@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
-<addon id="plugin.video.nhl66" name="NHL66" version="1.0.9" provider-name="tekbec">
+<addon id="plugin.video.nhl66" name="NHL66" version="1.0.10" provider-name="tekbec">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.inputstreamhelper" version="0.6.1+matrix.1"/>
