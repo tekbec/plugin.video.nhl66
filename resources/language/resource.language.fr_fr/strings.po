@@ -165,3 +165,11 @@ msgstr "Paramètres de plateforme"
 msgctxt "#33008"
 msgid "Premium Code"
 msgstr "Code premium"
+
+msgctxt "#33009"
+msgid "Advanced"
+msgstr "Avancé"
+
+msgctxt "#33010"
+msgid "Enable legacy live stream resume time fix"
+msgstr "Activer l'ancienne correction du point de reprise des flux en direct"

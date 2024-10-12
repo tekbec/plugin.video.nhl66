@@ -167,3 +167,11 @@ msgstr ""
 msgctxt "#33008"
 msgid "Premium Code"
 msgstr ""
+
+msgctxt "#33009"
+msgid "Advanced"
+msgstr ""
+
+msgctxt "#33010"
+msgid "Enable legacy live stream resume time fix"
+msgstr ""

@@ -7,6 +7,7 @@ from codequick import run as codequick_run
 from codequick.utils import bold, color
 from codequick.script import Settings
 from .common.labels import labels
+from .common.utils import get_kodi_version
 from .exceptions import NotificationError
 from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth, LinkStatus
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
@@ -23,6 +24,7 @@ VIEW_MODE = None
 
 
 def run():
+    Script.log(f'Kodi version is {str(get_kodi_version())}')
     addon_data = xbmcaddon.Addon()
     addon_icon = addon_data.getAddonInfo('icon')
     try:
@@ -227,14 +229,22 @@ def play_link(plugin: Resolver, link_id, premium):
             listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
             listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
 
-        # Force live
-        if link.status in [LinkStatus.LIVE, LinkStatus.PLANNED, LinkStatus.DELAYED]:
-            listitem.listitem.setProperty('ResumeTime', str(60*60*24*365))
-            listitem.listitem.setProperty('TotalTime', '1')
-
-        # Force replay
-        if link.status in [LinkStatus.REPLAY]:
-            listitem.listitem.setProperty('ResumeTime', '1')
-            listitem.listitem.setProperty('TotalTime', '1')
+        # Legacy resume time fix
+        if Settings.get_boolean('legacy_resume_fix'):
+            Script.log('Applying legacy resume time fix.')
+            # Force live
+            if link.status in [LinkStatus.LIVE, LinkStatus.PLANNED, LinkStatus.DELAYED]:
+                if get_kodi_version() >= 20.0:
+                    listitem.listitem.getVideoInfoTag().setResumePoint(60*60*24*40, 1)
+                else:
+                    listitem.listitem.setProperty('ResumeTime', str(60*60*24*40))
+                    listitem.listitem.setProperty('TotalTime', '1')
+            # Force replay
+            if link.status in [LinkStatus.REPLAY]:
+                if get_kodi_version() >= 20.0:
+                    listitem.listitem.getVideoInfoTag().setResumePoint(1, 1)
+                else:
+                    listitem.listitem.setProperty('ResumeTime', '1')
+                    listitem.listitem.setProperty('TotalTime', '1')
 
     return listitem
