@@ -125,8 +125,8 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
             listitem.info.title = game.label
             if game.thumbnail:
                 listitem.art.thumb  = game.thumbnail
-                listitem.art.fanart = game.thumbnail
-                listitem.art.poster = game.thumbnail
+                listitem.art.poster = game.poster
+                listitem.art.icon   = game.square
 
             # Add it in the right category
             if game.status == GameStatus.PREGAME:
