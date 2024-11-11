@@ -111,6 +111,8 @@ class RequestsHandler(BaseHTTPRequestHandler):
             # M3U8 requests
             # -------------------------------------------------------- #
             if self.extension == 'm3u8':
+
+                # Link redirections
                 self.log('.m3u8 file detected, modifiying hrefs...')
                 base_url = self.url.rsplit('/', 1)[0]
                 lines = body.split('\n')
@@ -146,6 +148,30 @@ class RequestsHandler(BaseHTTPRequestHandler):
                     except:
                         self.log(f'Unable to parse this line: {lines[i]}', Script.ERROR)
                         traceback.print_exc()
+
+                # Fix NHL.TV vod/live behavior
+                if self.provider == 'nhltv':
+                    # Add #EXT-X-PLAYLIST-TYPE tag
+                    #if '#EXT-X-PROGRAM-DATE-TIME' in body:
+                    #    if not '#EXT-X-PLAYLIST-TYPE' in body:
+                    #        is_vod = '#EXT-X-ENDLIST' in body
+                    #        type_line = '#EXT-X-PLAYLIST-TYPE:' + 'VOD' if is_vod else 'EVENT'
+                    #        for i in range(len(lines)):
+                    #            if lines[i] == '#EXTM3U':
+                    #                lines.insert(i+1, type_line)
+                    #                self.log(f'Added {type_line} tag at line {str(i+1)}.')
+                    #                break
+                    # Remove #EXT-X-PROGRAM-DATE-TIME tag
+                    i = 0
+                    c = 0
+                    while i < len(lines):
+                        if '#EXT-X-PROGRAM-DATE-TIME' in lines[i]:
+                            lines.pop(i)
+                            c += 1
+                            continue
+                        i += 1
+                    self.log(f'Removed {str(c)} #EXT-X-PROGRAM-DATE-TIME tags.')
+                    
                 body = '\n'.join(lines)
 
             self._send(resp.status_code, self._filter_headers(resp.headers), body.encode())
