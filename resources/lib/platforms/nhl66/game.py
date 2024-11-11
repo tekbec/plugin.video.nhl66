@@ -11,7 +11,7 @@ from codequick import Script
 from codequick.utils import bold, color, italic
 from ...platforms.thesportsdb.schedule import get_game
 from ...platforms.thesportsdb.tvevents import get_tv_events
-from ...common.thumbnails import get_thumbnail_url
+from ...common.thumbnails import get_thumbnail_url, get_poster_url, get_square_url
 import json, traceback
 
 
@@ -33,10 +33,9 @@ class Game:
         self.home_team = home_team
         self.content_ids = content_ids
         self.winner = winner
-        #self.thumbnail = get_thumbnail_url(self.home_team.abbreviation, self.away_team.abbreviation)
-        self.thumbnail = f'https://tekbec.github.io/sport-visuals-generator/out/nhl_{away_team.abbreviation}_{home_team.abbreviation}_thumbnail.png'
-        self.poster    = f'https://tekbec.github.io/sport-visuals-generator/out/nhl_{away_team.abbreviation}_{home_team.abbreviation}_poster.png'
-        self.square    = f'https://tekbec.github.io/sport-visuals-generator/out/nhl_{away_team.abbreviation}_{home_team.abbreviation}_square.png'
+        self.thumbnail = get_thumbnail_url(self.home_team.abbreviation, self.away_team.abbreviation)
+        self.poster    = get_poster_url   (self.home_team.abbreviation, self.away_team.abbreviation)
+        self.square    = get_square_url   (self.home_team.abbreviation, self.away_team.abbreviation)
         self._tsdb_game_event = None
         self._tsdb_tv_events = None
 
