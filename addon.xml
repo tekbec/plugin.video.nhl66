@@ -22,7 +22,7 @@
         <icon>resources/media/icon.png</icon>
         <fanart>resources/media/fanart.jpg</fanart>
     </assets>
-    <website>https://nhl66.ir/</website>
+    <website>https://nhl24all.ir/</website>
     <source>https://github.com/tekbec/plugin.video.nhl66</source>
   </extension>
 </addon>
