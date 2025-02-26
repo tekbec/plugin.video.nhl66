@@ -1,7 +1,7 @@
 from .team import Team
 
 # API
-API_BASE_URL   = 'https://api.nhl66.ir'
+API_BASE_URL   = 'https://api.nhl24all.ir'
 STATESHOT_PATH = '/api/sport/stateshot'
 PREMIUM_ACCOUNT_API_BASE_URL = 'https://account24network.com'
 SIGNATURE_PATH               = '/api/profile/generate_entitlement_signature'

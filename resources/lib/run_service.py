@@ -42,7 +42,7 @@ ADDON_ICON = ADDON_DATA.getAddonInfo('icon')
 CACHE = {}
 CACHE_SIZE = 20
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
-NHL66_ESPN_CYPER_BASE_URL = 'https://api.nhl66.ir/api/get_cypher/espn'
+NHL66_ESPN_CYPER_BASE_URL = 'https://api.nhl24all.ir/api/get_cypher/espn'
 
 class RequestsHandler(BaseHTTPRequestHandler):
 
