@@ -15,6 +15,13 @@ class Team:
         return f'{self.city} {self.name}'
     
     @classmethod
+    def from_id(cls, nhl66_id: str, nhl66_teams: dict):
+        for nhl66_team in nhl66_teams:
+            if nhl66_team['id'] == nhl66_id:
+                return Team.from_abbreviation(nhl66_team['abbreviation'])
+        return None
+    
+    @classmethod
     def from_abbreviation(cls, abbreviation: str):
         from .consts import TEAMS
         for team in TEAMS:

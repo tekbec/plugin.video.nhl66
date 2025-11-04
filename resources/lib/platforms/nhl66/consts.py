@@ -2,7 +2,8 @@ from .team import Team
 
 # API
 API_BASE_URL   = 'https://api.nhl24all.ir'
-STATESHOT_PATH = '/api/sport/stateshot'
+STATESHOT_PATH = '/api/v2/stateshot'
+GENERATE_STREAM_INFO_PATH = '/api/v2/generate_stream_info'
 PREMIUM_ACCOUNT_API_BASE_URL = 'https://account24network.com'
 SIGNATURE_PATH               = '/api/profile/generate_entitlement_signature'
 INFO_PATH                    = '/api/profile/get_premium_code'

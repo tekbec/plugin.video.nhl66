@@ -9,7 +9,7 @@ from codequick.script import Settings
 from .common.labels import labels
 from .common.utils import get_kodi_version
 from .exceptions import NotificationError
-from .platforms.nhl66 import NHL66, Game, GameStatus, Link, PremiumLinkGenerator, Auth, LinkStatus
+from .platforms.nhl66 import NHL66, Game, GameStatus, Auth, MediaEvent, StreamInfo, MediaEventStatus
 from .platforms.nhl66.consts import PREMIUM_ORIGIN
 from typing import List
 from .gui.premium.login import LoginWindow
@@ -58,7 +58,7 @@ def root(plugin: Route):
     """
     # Live Events
     live_events_label = color(bold(plugin.localize(labels.get('live_events'))), 'limegreen')
-    live_events_item = Listitem.from_dict(get_games, live_events_label, params={'status_filter': [GameStatus.LIVE, GameStatus.PREGAME]})
+    live_events_item = Listitem.from_dict(get_games, live_events_label, params={'status_filter': [GameStatus.LIVE, GameStatus.PLANNED]})
     live_events_item.info.title = live_events_label
     yield live_events_item
 
@@ -115,13 +115,13 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
     schedule = NHL66.get_schedule()
 
     live_events = []
-    pregame_events = []
+    planned_events = []
     final_events = []
 
     for game in schedule:
         try:
             # Create the list item
-            listitem = Listitem.from_dict(game_links, game.label, params={'game_id': game.id})
+            listitem = Listitem.from_dict(game_media_events, game.label, params={'game_id': game.id})
             listitem.info.title = game.label
             if game.thumbnail:
                 listitem.art.thumb  = game.thumbnail
@@ -129,8 +129,8 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
                 listitem.art.icon   = game.square
 
             # Add it in the right category
-            if game.status == GameStatus.PREGAME:
-                pregame_events.append(listitem)
+            if game.status == GameStatus.PLANNED:
+                planned_events.append(listitem)
             elif game.status == GameStatus.LIVE:
                 live_events.append(listitem)
             elif game.status == GameStatus.FINAL:
@@ -142,8 +142,8 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
     for status in status_filter:
         if status == GameStatus.LIVE:
             events.extend(live_events)
-        elif status == GameStatus.PREGAME:
-            events.extend(pregame_events)
+        elif status == GameStatus.PLANNED:
+            events.extend(planned_events)
         elif status == GameStatus.FINAL:
             events.extend(final_events)
 
@@ -152,9 +152,9 @@ def get_games(plugin: Route, status_filter: List[GameStatus]):
 
 
 @Route.register(content_type='videos')
-def game_links(plugin, game_id):
+def game_media_events(plugin, game_id):
     """
-    The links list page route.
+    The media events list page route.
     """
 
     global VIEW_MODE
@@ -165,82 +165,83 @@ def game_links(plugin, game_id):
     if game is None:
         raise NotificationError('Game Not Found', 'Cannot find the game details.')
     
-    # Retrieve links
-    links = game.get_links(skip_cache=False)
+    # Retrieve media events
+    media_events = game.get_media_events(skip_cache=True)
+    print(media_events)
 
     # Create listitems
-    for link in links:
+    for media_event in media_events:
         try:
             # Standard link
-            std_listitem = Listitem.from_dict(play_link, link.label, params={'link_id': link.id, 'premium': False})
-            std_listitem.info.title = link.label
-            if link.thumbnail:
-                std_listitem.art.thumb  = link.thumbnail
-                std_listitem.art.fanart = link.thumbnail
-                std_listitem.art.poster = link.thumbnail
+            std_listitem = Listitem.from_dict(play_media_event, media_event.label, params={'media_event_id': media_event.id, 'premium': False})
+            std_listitem.info.title = media_event.label
+            if media_event.thumbnail:
+                std_listitem.art.thumb  = media_event.thumbnail
+                std_listitem.art.fanart = media_event.thumbnail
+                std_listitem.art.poster = media_event.thumbnail
             yield std_listitem
-            if link.premium_flavor:
-                std_listitem = Listitem.from_dict(play_link, link.premium_label, params={'link_id': link.id, 'premium': True})
-                std_listitem.info.title = link.premium_label
-                if link.thumbnail:
-                    std_listitem.art.thumb  = link.thumbnail
-                    std_listitem.art.fanart = link.thumbnail
-                    std_listitem.art.poster = link.thumbnail
-                yield std_listitem
+            # if link.premium_flavor:
+            #     std_listitem = Listitem.from_dict(play_link, link.premium_label, params={'link_id': link.id, 'premium': True})
+            #     std_listitem.info.title = link.premium_label
+            #     if link.thumbnail:
+            #         std_listitem.art.thumb  = link.thumbnail
+            #         std_listitem.art.fanart = link.thumbnail
+            #         std_listitem.art.poster = link.thumbnail
+            #     yield std_listitem
         except Exception as e:
             Script.log(str(e), lvl=Script.ERROR)
 
 
 
 @Resolver.register
-def play_link(plugin: Resolver, link_id, premium):
+def play_media_event(plugin: Resolver, media_event_id, premium):
     """
-    The link playing route.
+    The media event playing route.
     """
 
-    # Retrieve the link
-    link: Link = Link.from_id(link_id, skip_cache=True)
-    if link is None:
-        raise NotificationError('Link Not Found', 'Cannot find the requested link.')
+    # Retrieve the media event
+    media_event: MediaEvent = MediaEvent.from_id(media_event_id, skip_cache=False)
+    if media_event is None:
+        raise NotificationError('Media Event Not Found', 'Cannot find the requested media event.')
     
-    # Retrieve the url
-    url = PremiumLinkGenerator.generate_premium_link(link) if premium else link.url
-    if url is None:
-        raise NotificationError('Unavailable', 'This link is not available yet.')
+    # Retrieve the stream info
+    stream_info: StreamInfo = media_event.get_stream_info(premium)
+    if stream_info is None:
+        raise NotificationError('Stream Info Not Found', 'Cannot find the requested stream info.')
 
     # Build the listitem
     helper = inputstreamhelper.Helper('hls')
     if helper.check_inputstream():
         listitem = Listitem()
-        listitem.label = link.label
-        listitem.set_path(url)
+        listitem.label = media_event.label
+        listitem.set_path(stream_info.url)
         listitem.listitem.setContentLookup(False)
         listitem.listitem.setMimeType('application/x-mpegURL')
         listitem.listitem.setProperty('inputstream', helper.inputstream_addon)
         listitem.listitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
         listitem.listitem.setProperty('inputstream.adaptive.stream_selection_type', 'ask-quality')
 
-        # Set premium-specific requests headers
-        if premium:
-            headers = {
-                'User-Agent': str(Settings.get_string('user_agent')),
-                'Origin': PREMIUM_ORIGIN
-            }
-            listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
-            listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
+        # # Set premium-specific requests headers
+        # if premium:
+        #     headers = {
+        #         'User-Agent': str(Settings.get_string('user_agent')),
+        #         'Origin': PREMIUM_ORIGIN
+        #     }
+        #     listitem.listitem.setProperty('inputstream.adaptive.manifest_headers', urllib.parse.urlencode(headers))
+        #     listitem.listitem.setProperty('inputstream.adaptive.stream_headers', urllib.parse.urlencode(headers))
 
         # Legacy resume time fix
         if Settings.get_boolean('legacy_resume_fix'):
             Script.log('Applying legacy resume time fix.')
             # Force live
-            if link.status in [LinkStatus.LIVE, LinkStatus.PLANNED, LinkStatus.DELAYED]:
+            if media_event.status in [MediaEventStatus.LIVE, MediaEventStatus.PLANNED, MediaEventStatus.DELAYED]:
                 if get_kodi_version() >= 20.0:
                     listitem.listitem.getVideoInfoTag().setResumePoint(60*60*24*40, 1)
                 else:
                     listitem.listitem.setProperty('ResumeTime', str(60*60*24*40))
                     listitem.listitem.setProperty('TotalTime', '1')
             # Force replay
-            if link.status in [LinkStatus.REPLAY]:
+            if media_event.status in [MediaEventStatus.REPLAY]:
                 if get_kodi_version() >= 20.0:
                     listitem.listitem.getVideoInfoTag().setResumePoint(1, 1)
                 else:

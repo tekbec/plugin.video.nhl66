@@ -25,8 +25,8 @@ msgid "Live"
 msgstr "En direct"
 
 msgctxt "#30002"
-msgid "Pre Game"
-msgstr "Avant-match"
+msgid "Planned"
+msgstr "Prévu"
 
 msgctxt "#30003"
 msgid "Final"

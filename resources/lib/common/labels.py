@@ -2,7 +2,7 @@
 labels = {
     'live_events': 30000,
     'live': 30001,
-    'pregame': 30002,
+    'planned': 30002,
     'final': 30003,
     'game_replays': 30004,
     'premium_account': 30005,

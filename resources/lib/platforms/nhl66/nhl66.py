@@ -11,7 +11,7 @@ class NHL66:
         games: list[Game] = []
         Script.log(f'{str(len(stateshot["games"]))} games found.', lvl = Script.DEBUG)
         for i in stateshot['games']:
-            game = Game.from_response(i)
+            game = Game.from_response(i, stateshot['teams'])
             if game is not None:
                 games.append(game)
         return games

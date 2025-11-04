@@ -8,3 +8,4 @@ def get_stateshot(skip_cache: bool = False):
     response = get(url=API_BASE_URL+STATESHOT_PATH, provider='nhl66', skip_cache=skip_cache)
     response.raise_for_status()
     return json.loads(response.text)
+
